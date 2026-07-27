@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  db:
+    image: ankane/pgvector:latest
+    container_name: lifesync_db
+    environment:
+      POSTGRES_USER: lifesync
+      POSTGRES_PASSWORD: lifesyncpassword
+      POSTGRES_DB: lifesync_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: lifesync_backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_USER=lifesync
+      - POSTGRES_PASSWORD=lifesyncpassword
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=lifesync_db
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: lifesync_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    # Run in dev mode for hot reloading during development
+    command: npm run dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
