@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,12 +21,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = await apiClient.post<{ access_token: string }>(
+      const data = await apiClient.post<{ access_token: string; refresh_token?: string; requires_verification?: boolean }>(
         "/api/v1/auth/login",
         `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
-      await login(data.access_token);
+      await login(data);
     } catch (err) {
       if (err instanceof ApiError) {
         const detail = err.data?.detail;
@@ -81,16 +83,30 @@ export default function LoginPage() {
               <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">
                 Password
               </label>
-              <div className="mt-2">
+              <div className="mt-2 relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-zinc-800 dark:text-white dark:ring-zinc-700 dark:focus:ring-indigo-500 px-3"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-zinc-800 dark:text-white dark:ring-zinc-700 dark:focus:ring-indigo-500 px-3 pr-10"
                 />
+                <button
+                  type="button"
+                  aria-label="Toggle password visibility"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <Link href="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Forgot password?
+            </Link>
           </div>
 
           <div>

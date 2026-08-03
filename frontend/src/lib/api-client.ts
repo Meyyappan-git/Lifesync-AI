@@ -1,5 +1,5 @@
 // src/lib/api-client.ts
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002";
 
 export class ApiError extends Error {
   status: number;
@@ -13,8 +13,7 @@ export class ApiError extends Error {
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_URL}${endpoint}`;
-  
-  // Try to get token if auth is implemented
+
   let token = null;
   if (typeof window !== "undefined") {
     token = localStorage.getItem("accessToken");
@@ -28,7 +27,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(url, { ...options, headers, credentials: "include" });
 
   if (!response.ok) {
     let errorData = null;

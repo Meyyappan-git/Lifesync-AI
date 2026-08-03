@@ -78,6 +78,11 @@ export default function Home() {
                 Sign In
               </Button>
             </Link>
+            <Link href="/dashboard?guest=1" className="w-full sm:w-auto">
+              <Button variant="ghost" className="w-full border border-zinc-700 hover:bg-zinc-900 text-zinc-200 px-8 py-4 rounded-xl text-base">
+                Continue as Guest
+              </Button>
+            </Link>
           </div>
         </div>
 

@@ -46,6 +46,10 @@ export default function NewReportPage() {
           lifestyle_factors: lifestyleFactors
         }
       );
+      await apiClient.post("/api/v1/lifesync/documents", {
+        name: `Assessment ${new Date().toLocaleDateString()}`,
+        file_type: "report",
+      });
       router.push(`/dashboard/report/${report.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -72,7 +76,7 @@ export default function NewReportPage() {
     try {
       // Custom fetch because apiClient wraps JSON content-type
       const token = localStorage.getItem("accessToken");
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002";
       
       const response = await fetch(`${API_URL}/api/v1/health/analyze-file`, {
         method: "POST",

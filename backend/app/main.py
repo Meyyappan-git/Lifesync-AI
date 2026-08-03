@@ -10,7 +10,13 @@ app = FastAPI(
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Update for production
+    allow_origins=[
+        settings.FRONTEND_URL,
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3002",
+        "http://localhost:3002",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,6 +28,8 @@ from app.db.base_class import Base
 from app.models import user, health_report, core_models
 
 # Create tables automatically (for MVP/development)
+if settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+    Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 # Seed default folders

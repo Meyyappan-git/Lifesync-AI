@@ -15,7 +15,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (token: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -35,9 +35,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const data = await apiClient.get<User>("/api/v1/auth/me");
       setUser(data);
     } catch (err) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      setUser(null);
+      try {
+        await apiClient.post("/api/v1/auth/refresh", {});
+        const data = await apiClient.get<User>("/api/v1/auth/me");
+        setUser(data);
+      } catch {
+        localStorage.removeItem("accessToken");
+        setUser(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -52,15 +57,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const login = async (token: string) => {
-    localStorage.setItem("accessToken", token);
+  const login = async (token: string | { access_token?: string; refresh_token?: string; requires_verification?: boolean }) => {
+    const accessToken = typeof token === "string" ? token : token.access_token;
+    if (!accessToken) {
+      throw new Error("No access token received");
+    }
+
+    localStorage.setItem("accessToken", accessToken);
     await fetchUser();
     router.push("/dashboard");
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await apiClient.post("/api/v1/auth/logout", {});
+    } catch {
+      // Ignore logout errors and clear local state.
+    }
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
     setUser(null);
     router.push("/login");
   };
