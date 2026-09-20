@@ -72,6 +72,9 @@ def _password_meets_policy(password: str) -> bool:
 
 
 def _rate_limit(key: str) -> None:
+    # Bypass rate limiting for loopback / local developer addresses
+    if "127.0.0.1" in key or "localhost" in key or "::1" in key:
+        return
     now = datetime.now(timezone.utc)
     bucket = _RATE_LIMITS[key]
     while bucket and (now - bucket[0]).total_seconds() > RATE_LIMIT_WINDOW_SECONDS:
@@ -150,21 +153,25 @@ def register(
         _send_verification_email(user, token)
         return {"message": "Verification email resent", "verification_url": f"/verify-email?token={token}"}
 
+    # For local development (SQLite), auto-verify. For Production (Postgres), require verification.
+    auto_verify = settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite")
+
     user = User(
         email=normalized_email,
         password_hash=security.get_password_hash(user_in.password),
         first_name=user_in.first_name,
         last_name=user_in.last_name,
-        is_verified=False,
+        is_verified=auto_verify,
     )
+    db.add(user)
+    db.commit()  # Commit first so user.id is assigned
+    db.refresh(user)
     token = _create_email_token(user.id, "verify", timedelta(hours=24))
     user.verification_token_hash = _hash_token(token)
     user.verification_token_expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
-    db.add(user)
     db.commit()
-    db.refresh(user)
     _send_verification_email(user, token)
-    return {"message": "Verification email sent", "verification_url": f"/verify-email?token={token}"}
+    return {"message": "Verification email sent", "verification_url": f"/verify-email?token={token}", "auto_verified": auto_verify}
 
 
 @router.get("/verify-email")
@@ -177,8 +184,10 @@ def verify_email(token: str, db: Session = Depends(deps.get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="Invalid or expired verification token")
 
-    if user.verification_token_expires_at and user.verification_token_expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="Verification token expired")
+    if user.verification_token_expires_at:
+        expires_at = user.verification_token_expires_at.replace(tzinfo=None) if user.verification_token_expires_at.tzinfo else user.verification_token_expires_at
+        if expires_at < datetime.utcnow():
+            raise HTTPException(status_code=400, detail="Verification token expired")
 
     user.is_verified = True
     user.verification_token_hash = None
@@ -317,8 +326,10 @@ def reset_password(payload: PasswordResetPayload, db: Session = Depends(deps.get
     if not user:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
 
-    if user.password_reset_token_expires_at and user.password_reset_token_expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="Reset token expired")
+    if user.password_reset_token_expires_at:
+        expires_at = user.password_reset_token_expires_at.replace(tzinfo=None) if user.password_reset_token_expires_at.tzinfo else user.password_reset_token_expires_at
+        if expires_at < datetime.utcnow():
+            raise HTTPException(status_code=400, detail="Reset token expired")
 
     user.password_hash = security.get_password_hash(payload.password)
     user.password_reset_token_hash = None

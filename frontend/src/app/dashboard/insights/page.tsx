@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
+import { guestInsights } from "@/lib/guest-sample";
 import { Sparkles, AlertTriangle, CalendarClock } from "lucide-react";
 
 interface InsightData {
@@ -10,12 +12,18 @@ interface InsightData {
   document_count: number;
 }
 
-export default function InsightsPage() {
+function InsightsContent() {
   const [data, setData] = useState<InsightData | null>(null);
+  const searchParams = useSearchParams();
+  const guestMode = searchParams.get("guest") === "1";
 
   useEffect(() => {
+    if (guestMode) {
+      setData(guestInsights);
+      return;
+    }
     apiClient.get<InsightData>("/api/v1/lifesync/insights").then(setData).catch(() => setData(null));
-  }, []);
+  }, [guestMode]);
 
   return (
     <div className="space-y-6">
@@ -68,5 +76,13 @@ export default function InsightsPage() {
         Stored documents: {data?.document_count ?? 0}
       </div>
     </div>
+  );
+}
+
+export default function InsightsPage() {
+  return (
+    <Suspense fallback={<div className="text-zinc-400 text-sm p-4">Loading Insights...</div>}>
+      <InsightsContent />
+    </Suspense>
   );
 }

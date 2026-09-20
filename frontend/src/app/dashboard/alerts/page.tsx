@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
+import { guestAlerts } from "@/lib/guest-sample";
 import { ShieldAlert, Sparkles } from "lucide-react";
 
 interface AlertItem {
@@ -13,12 +15,18 @@ interface AlertItem {
   deadline: string | null;
 }
 
-export default function AlertsPage() {
+function AlertsContent() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const searchParams = useSearchParams();
+  const guestMode = searchParams.get("guest") === "1";
 
   useEffect(() => {
-    apiClient.get<{ alerts: AlertItem[] }>('/api/v1/lifesync/dashboard').then((data) => setAlerts(data.alerts || [])).catch(() => setAlerts([]));
-  }, []);
+    if (guestMode) {
+      setAlerts(guestAlerts);
+      return;
+    }
+    apiClient.get<{ risks?: AlertItem[]; alerts?: AlertItem[] }>('/api/v1/lifesync/dashboard').then((data) => setAlerts(data.risks || data.alerts || [])).catch(() => setAlerts([]));
+  }, [guestMode]);
 
   return (
     <div className="space-y-6">
@@ -55,5 +63,13 @@ export default function AlertsPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function AlertsPage() {
+  return (
+    <Suspense fallback={<div className="text-zinc-400 text-sm p-4">Loading Alerts...</div>}>
+      <AlertsContent />
+    </Suspense>
   );
 }

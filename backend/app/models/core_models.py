@@ -78,12 +78,23 @@ class EmergencyProfile(Base):
 
     user = relationship("User", backref="emergency_profile")
 
+class DocumentRelationship(Base):
+    __tablename__ = "document_relationships"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    source_document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
+    target_document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
+    relationship_type = Column(String, nullable=False) # e.g. "depends_on", "related_to", "supersedes"
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class ActivityLog(Base):
     __tablename__ = "activity_logs"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    action = Column(String, nullable=False) # e.g. "LOGIN", "UPLOAD_DOC", "VIEW_DEATH_RISK"
+    action = Column(String, nullable=False) # e.g. "LOGIN", "UPLOAD_DOC", "CROSS_DOMAIN_RISK"
     details = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", backref="activity_logs")
+

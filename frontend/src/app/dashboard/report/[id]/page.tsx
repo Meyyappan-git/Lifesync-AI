@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { guestReportSample } from "@/lib/guest-sample";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { 
@@ -92,8 +94,16 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
   const [report, setReport] = useState<HealthReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const guestMode = searchParams.get("guest") === "1";
 
   useEffect(() => {
+    if (guestMode) {
+      setReport(guestReportSample);
+      setLoading(false);
+      return;
+    }
+
     if (reportId) {
       apiClient.get<HealthReport>(`/api/v1/health/report/${reportId}`)
         .then((data) => {
@@ -110,7 +120,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
           setLoading(false);
         });
     }
-  }, [reportId]);
+  }, [reportId, guestMode]);
 
   if (loading) {
     return (
@@ -130,7 +140,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
           <ShieldAlert className="h-16 w-16 text-rose-500 mx-auto" />
           <h2 className="text-2xl font-bold">Report Unobtainable</h2>
           <p className="text-zinc-400">{error || "The requested assessment data is unavailable."}</p>
-          <Link href="/dashboard">
+          <Link href={`/dashboard${guestMode ? "?guest=1" : ""}`}>
             <Button className="w-full bg-indigo-600 hover:bg-indigo-500 mt-4">Return to Dashboard</Button>
           </Link>
         </div>
@@ -144,7 +154,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
         
         {/* Back Link & Action Bar */}
         <div className="flex items-center justify-between print:hidden">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm font-medium">
+          <Link href={`/dashboard${guestMode ? "?guest=1" : ""}`} className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm font-medium">
             <ArrowLeft className="h-4 w-4" /> Back to Dashboard
           </Link>
           

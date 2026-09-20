@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
+import { guestEmergencyProfile } from "@/lib/guest-sample";
 import { ShieldCheck } from "lucide-react";
 
 interface EmergencyProfile {
@@ -12,7 +14,7 @@ interface EmergencyProfile {
   trusted_contacts_json: Record<string, unknown> | null;
 }
 
-export default function EmergencyPage() {
+function EmergencyContent() {
   const [profile, setProfile] = useState<EmergencyProfile | null>(null);
   const [message, setMessage] = useState("");
   const [form, setForm] = useState({
@@ -21,8 +23,21 @@ export default function EmergencyPage() {
     emergency_contact_name: "",
     emergency_contact_phone: "",
   });
+  const searchParams = useSearchParams();
+  const guestMode = searchParams.get("guest") === "1";
 
   useEffect(() => {
+    if (guestMode) {
+      setProfile(guestEmergencyProfile);
+      setForm({
+        blood_group: guestEmergencyProfile.blood_group || "",
+        medical_conditions: guestEmergencyProfile.medical_conditions || "",
+        emergency_contact_name: guestEmergencyProfile.emergency_contact_name || "",
+        emergency_contact_phone: guestEmergencyProfile.emergency_contact_phone || "",
+      });
+      return;
+    }
+
     apiClient.get<{ profile: EmergencyProfile | null }>('/api/v1/lifesync/emergency-profile').then((data) => {
       if (data.profile) {
         setProfile(data.profile);
@@ -34,7 +49,7 @@ export default function EmergencyPage() {
         });
       }
     }).catch(() => setProfile(null));
-  }, []);
+  }, [guestMode]);
 
   const saveProfile = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -77,5 +92,13 @@ export default function EmergencyPage() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export default function EmergencyPage() {
+  return (
+    <Suspense fallback={<div className="text-zinc-400 text-sm p-4">Loading Emergency Vault...</div>}>
+      <EmergencyContent />
+    </Suspense>
   );
 }

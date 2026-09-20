@@ -1,72 +1,94 @@
 "use client";
 
 import Link from "next/link";
-import { HeartHandshake, LayoutDashboard, FolderKanban, ShieldAlert, Sparkles, LogOut, BrainCircuit, ShieldCheck, Shield } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { 
+  HeartHandshake, LayoutDashboard, FolderKanban, ShieldAlert, Sparkles, 
+  LogOut, Plane, ShieldCheck, Bot, Flame
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+import { Suspense } from "react";
+
+function SidebarNav() {
   const { user, logout } = useAuth();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const guestMode = searchParams.get("guest") === "1";
+  const guestQuery = guestMode ? "?guest=1" : "";
+
+  const navItems = [
+    { label: "Dashboard", href: `/dashboard${guestQuery}`, icon: LayoutDashboard },
+    { label: "7 Smart Folders", href: `/dashboard/folders${guestQuery}`, icon: FolderKanban },
+    { label: "Risk Engine", href: `/dashboard/risk-engine${guestQuery}`, icon: ShieldAlert },
+    { label: "AI RAG Assistant", href: `/dashboard/assistant${guestQuery}`, icon: Bot },
+    { label: "Travel Checker", href: `/dashboard/travel-checker${guestQuery}`, icon: Plane },
+    { label: "Emergency Vault", href: `/dashboard/vault${guestQuery}`, icon: ShieldCheck },
+  ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <aside className="w-full lg:w-72 border-b lg:border-b-0 lg:border-r border-border bg-sidebar p-6 flex flex-col justify-between">
+      <div>
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-primary p-0.5 shadow-lg shadow-primary/20">
+            <div className="h-full w-full bg-sidebar rounded-[10px] flex items-center justify-center">
+              <HeartHandshake className="h-4 w-4 text-accent" />
+            </div>
+          </div>
+          <span className="text-lg font-extrabold text-sidebar-foreground">
+            LifeSync <span className="text-accent">AI</span>
+          </span>
+        </div>
+
+        <nav className="mt-8 space-y-1.5">
+          {navItems.map((item, i) => {
+            const isActive = pathname === item.href.split("?")[0];
+            return (
+              <Link 
+                key={i} 
+                href={item.href} 
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}`}
+              >
+                <item.icon className="h-4 w-4" /> {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 text-xs text-zinc-400 space-y-2">
+        {user ? (
+          <>
+            <p className="font-bold text-zinc-200">Signed in as</p>
+            <p className="text-white truncate">{user.email}</p>
+            <button onClick={() => logout()} className="mt-3 flex items-center gap-2 text-rose-400 font-bold hover:text-rose-300">
+              <LogOut className="h-3.5 w-3.5" /> Sign out
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="font-bold text-zinc-200">Guest Preview Mode</p>
+            <p className="text-zinc-400">All 7 folders and risk engines unlocked.</p>
+            <div className="mt-3 flex gap-3 font-bold text-indigo-400">
+              <Link href="/login" className="hover:underline">Sign in</Link>
+              <Link href="/register" className="hover:underline">Register</Link>
+            </div>
+          </>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <aside className="w-full lg:w-72 border-b lg:border-b-0 lg:border-r border-zinc-800 bg-zinc-950/90 p-6">
-          <div className="flex items-center gap-2">
-            <HeartHandshake className="h-7 w-7 text-indigo-500" />
-            <span className="text-lg font-semibold">LifeSync AI</span>
-          </div>
+        <Suspense fallback={<div className="w-full lg:w-72 p-6 text-xs text-zinc-500">Loading Navigation...</div>}>
+          <SidebarNav />
+        </Suspense>
 
-          <nav className="mt-8 space-y-2">
-            <Link href="/dashboard" className="flex items-center gap-3 rounded-xl bg-zinc-900 px-3 py-3 text-sm font-medium text-white">
-              <LayoutDashboard className="h-4 w-4" /> Dashboard
-            </Link>
-            <Link href="/dashboard/folders" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white">
-              <FolderKanban className="h-4 w-4" /> Smart Folders
-            </Link>
-            <Link href="/dashboard/alerts" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white">
-              <ShieldAlert className="h-4 w-4" /> Risk Alerts
-            </Link>
-            <Link href="/dashboard/assistant" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white">
-              <Sparkles className="h-4 w-4" /> AI Assistant
-            </Link>
-            <Link href="/dashboard/insights" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white">
-              <BrainCircuit className="h-4 w-4" /> Insights
-            </Link>
-            <Link href="/dashboard/emergency" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white">
-              <ShieldCheck className="h-4 w-4" /> Emergency Vault
-            </Link>
-            <Link href="/dashboard/admin" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white">
-              <Shield className="h-4 w-4" /> Admin Center
-            </Link>
-          </nav>
-
-          <div className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 text-sm text-zinc-400">
-            {user ? (
-              <>
-                <p className="font-medium text-zinc-200">Signed in as</p>
-                <p className="mt-1 text-white">{user.email}</p>
-                <button onClick={() => logout()} className="mt-4 flex items-center gap-2 text-rose-400">
-                  <LogOut className="h-4 w-4" /> Sign out
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="font-medium text-zinc-200">Guest preview mode</p>
-                <p className="mt-1 text-white">Explore the dashboard without logging in.</p>
-                <div className="mt-4 space-x-2">
-                  <Link href="/login" className="text-sm text-indigo-300 hover:text-indigo-200">
-                    Sign in
-                  </Link>
-                  <Link href="/register" className="text-sm text-indigo-300 hover:text-indigo-200">
-                    Register
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
-        </aside>
-
-        <main className="flex-1 p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">{children}</main>
       </div>
     </div>
   );

@@ -14,8 +14,12 @@ app.add_middleware(
         settings.FRONTEND_URL,
         "http://127.0.0.1:3000",
         "http://localhost:3000",
+        "http://127.0.0.1:3001",
+        "http://localhost:3001",
         "http://127.0.0.1:3002",
         "http://localhost:3002",
+        "http://127.0.0.1:3003",
+        "http://localhost:3003",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -28,7 +32,9 @@ from app.db.base_class import Base
 from app.models import user, health_report, core_models
 
 # Create tables automatically (for MVP/development)
-if settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+import os
+# Only drop tables if explicitly requested via environment variable
+if os.getenv("RESET_DB") == "1" and settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
     Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 

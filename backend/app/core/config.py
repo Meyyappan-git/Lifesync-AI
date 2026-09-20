@@ -17,14 +17,16 @@ class Settings(BaseSettings):
         if os.getenv("POSTGRES_SERVER"):
             return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         # Using SQLite for local non-Docker development
-        return f"sqlite:///./lifesync.db"
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        db_path = os.path.join(base_dir, "lifesync.db")
+        return f"sqlite:///{db_path}"
 
     # JWT Settings
     SECRET_KEY: str = "supersecretkey_please_change_in_production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
-    FRONTEND_URL: str = "http://localhost:3002"
+    FRONTEND_URL: str = "http://localhost:3000"
     
     # Storage
     STORAGE_DIR: str = "storage"

@@ -76,7 +76,7 @@ export default function NewReportPage() {
     try {
       // Custom fetch because apiClient wraps JSON content-type
       const token = localStorage.getItem("accessToken");
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       
       const response = await fetch(`${API_URL}/api/v1/health/analyze-file`, {
         method: "POST",

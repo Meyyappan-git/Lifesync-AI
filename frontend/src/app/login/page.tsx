@@ -26,7 +26,13 @@ export default function LoginPage() {
         `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
-      await login(data);
+      if (data.requires_verification) {
+        // Show a message and redirect to verify email page
+        setError("Please verify your email before signing in. Check your inbox for the verification link.");
+        setLoading(false);
+        return;
+      }
+      await login(data.access_token);
     } catch (err) {
       if (err instanceof ApiError) {
         const detail = err.data?.detail;
