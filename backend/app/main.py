@@ -1,11 +1,26 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 from app.core.config import settings
+from app.core.errors import AppException, app_exception_handler, validation_exception_handler
+from app.api.v1.routes.auth import limiter
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+# Exception Handlers & Rate Limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 # Set up CORS
 app.add_middleware(
@@ -16,10 +31,6 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3001",
         "http://localhost:3001",
-        "http://127.0.0.1:3002",
-        "http://localhost:3002",
-        "http://127.0.0.1:3003",
-        "http://localhost:3003",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -27,19 +38,14 @@ app.add_middleware(
 )
 
 from app.api.api import api_router
-from app.db.database import engine
+from app.db.database import engine, SessionLocal
 from app.db.base_class import Base
-from app.models import user, health_report, core_models
+from app.models import user, session, one_time_token, activity_log, core_models
 
-# Create tables automatically (for MVP/development)
-import os
-# Only drop tables if explicitly requested via environment variable
-if os.getenv("RESET_DB") == "1" and settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
-    Base.metadata.drop_all(bind=engine)
+# Auto-create tables for local development
 Base.metadata.create_all(bind=engine)
 
 # Seed default folders
-from app.db.database import SessionLocal
 from app.models.core_models import Folder
 
 def seed_folders():

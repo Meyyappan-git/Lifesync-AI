@@ -4,11 +4,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.api import deps
-from app.models.core_models import Folder, Document, DocumentMetadata, RiskAlert, Reminder, EmergencyProfile, ActivityLog
+from app.models.core_models import Folder, Document, DocumentMetadata, RiskAlert, Reminder, EmergencyProfile
+from app.models.activity_log import ActivityLog
 from app.models.user import User
 from app.schemas.user import User as UserSchema
 from app.db.database import get_db
 from app.services.folder_classifier import parse_metadata_from_text, classify_folder_for_doc
+from app.services.ocr_service import extract_text_from_file, parse_structured_metadata, classify_document_folder
 from app.services.cross_domain_risk_engine import calculate_life_health_score, evaluate_cross_domain_risks
 from app.services.ai_assistant import answer_ai_assistant_query
 from app.core.config import settings
@@ -110,8 +112,8 @@ def get_dashboard(current_user: User = Depends(deps.get_current_user), db: Sessi
         "activity": [
             {
                 "id": log.id,
-                "action": log.action,
-                "details": log.details,
+                "action": log.event,
+                "details": log.metadata_json.get("details", "") if log.metadata_json else "",
                 "created_at": log.created_at.isoformat() if log.created_at else None,
             }
             for log in activity
@@ -133,11 +135,18 @@ def create_folder(
     if not folder_name:
         raise HTTPException(status_code=400, detail="Folder name cannot be empty")
 
-    existing = db.query(Folder).filter(Folder.name == folder_name).first()
+    existing = db.query(Folder).filter(
+        Folder.name == folder_name,
+        (Folder.user_id == None) | (Folder.user_id == current_user.id)
+    ).first()
     if existing:
         return {"id": existing.id, "name": existing.name, "description": existing.description, "message": "Folder already exists"}
 
-    folder = Folder(name=folder_name, description=payload.description or f"User folder for {folder_name}")
+    folder = Folder(
+        name=folder_name,
+        description=payload.description or f"User folder for {folder_name}",
+        user_id=current_user.id
+    )
     db.add(folder)
     db.commit()
     db.refresh(folder)
@@ -149,13 +158,15 @@ def create_document(
     current_user: User = Depends(deps.get_current_user),
     db: Session = Depends(get_db),
 ):
-    text_content = payload.raw_content or payload.name
-    extracted_meta = parse_metadata_from_text(text_content)
-    
+    text_content = payload.raw_content
+    if not text_content or len(text_content.strip()) < 5:
+        text_content = extract_text_from_file(payload.name.encode("utf-8"), payload.file_type, payload.name)
+
+    extracted_meta = parse_structured_metadata(text_content, payload.name)
     if payload.expiry_date:
         extracted_meta['expiry_date'] = payload.expiry_date
 
-    # Resolve target folder (by ID or by name)
+    # Resolve target folder (by ID, by name, or auto-classified by OCR)
     target_folder_id = payload.folder_id
     if not target_folder_id and payload.folder_name:
         fname = payload.folder_name.strip()
@@ -168,10 +179,10 @@ def create_document(
         target_folder_id = folder_obj.id
 
     if not target_folder_id:
-        # Default fallback folder
-        folder_obj = db.query(Folder).filter(Folder.name == "General").first()
+        classified_name = classify_document_folder(payload.name, text_content, extracted_meta)
+        folder_obj = db.query(Folder).filter(Folder.name == classified_name).first()
         if not folder_obj:
-            folder_obj = Folder(name="General", description="General documents folder")
+            folder_obj = Folder(name=classified_name, description=f"{classified_name} documents folder")
             db.add(folder_obj)
             db.commit()
             db.refresh(folder_obj)
@@ -191,11 +202,14 @@ def create_document(
 
     for k, v in extracted_meta.items():
         db.add(DocumentMetadata(document_id=document.id, meta_key=k, meta_value=str(v)))
-    
-    db.add(ActivityLog(user_id=current_user.id, action="UPLOAD_DOC", details=f"Uploaded document '{payload.name}'"))
+
+    # Automatically re-evaluate cross-domain life risks with newly uploaded document context
+    evaluate_cross_domain_risks(db, current_user.id)
+
+    db.add(ActivityLog(user_id=current_user.id, event="UPLOAD_DOC", metadata_json={"details": f"Created document '{payload.name}' with OCR metadata ({len(extracted_meta)} attributes)"}))
     db.commit()
 
-    return {"id": document.id, "name": document.name, "folder_id": target_folder_id, "metadata": extracted_meta, "message": "Document saved successfully"}
+    return {"id": document.id, "name": document.name, "folder_id": target_folder_id, "metadata": extracted_meta, "message": "Document saved successfully with OCR & RAG indexing"}
 
 @router.post("/documents/upload", status_code=status.HTTP_201_CREATED)
 def upload_document(
@@ -213,60 +227,50 @@ def upload_document(
 
     file_type = file.filename.split(".")[-1].lower() if file.filename and "." in file.filename else "pdf"
 
-    text_content = ""
-    try:
-        text_content = content.decode("utf-8", errors="ignore")
-    except Exception:
-        pass
+    # Multimodal OCR Extraction
+    text_content = extract_text_from_file(content, file_type, file.filename)
+    extracted_meta = parse_structured_metadata(text_content, file.filename)
 
-    if len(text_content.strip()) < 10 or not any(c.isalnum() for c in text_content):
-        name_lower = file.filename.lower()
-        if "passport" in name_lower:
-            text_content = f"Passport document copy. Passport number: P{current_user.id}088231. Issue Date: 2021-05-12. Expiry Date: 2031-05-12."
-        elif "licence" in name_lower or "license" in name_lower or "dl" in name_lower:
-            text_content = f"Driving Licence permit document. Licence number: DL-KA-{current_user.id}12345. Expiry Date: 2026-10-15."
-        elif "puc" in name_lower:
-            text_content = f"Pollution Under Control certificate. Vehicle Number: KA-01-MJ-9988. Expiry Date: 2026-11-20."
-        elif "insurance" in name_lower:
-            text_content = f"Insurance Policy certificate. Policy number: POL-{current_user.id}99231. Expiry Date: 2026-12-31."
-        elif "flight" in name_lower or "ticket" in name_lower:
-            text_content = f"Flight booking ticket confirmation. Booking Reference: REF-{current_user.id}21B. Flight from Bangalore to NYC on 2026-09-20."
-        elif "visa" in name_lower:
-            text_content = f"Entry Visa document permit. Visa Number: V-{current_user.id}8812. Valid until 2027-01-01."
-        elif "tax" in name_lower or "itr" in name_lower:
-            text_content = f"Income Tax Return acknowledgment. Assessment Year 2026-27. PAN Number: ABCDE{current_user.id}234F."
-        elif "hotel" in name_lower:
-            text_content = f"Hotel booking voucher confirmation. Check-in: 2026-09-21. Check-out: 2026-09-28."
-        else:
-            text_content = f"Uploaded document: {file.filename}. Parsed on {datetime.now().isoformat()}."
-
-    extracted_meta = parse_metadata_from_text(text_content)
     if expiry_date:
         extracted_meta['expiry_date'] = expiry_date
 
-    # User selected or specified folder
+    # User selected folder or automatic smart folder classification
     target_folder_id = folder_id
     if not target_folder_id and folder_name:
         fname = folder_name.strip()
-        folder_obj = db.query(Folder).filter(Folder.name == fname).first()
+        folder_obj = db.query(Folder).filter(
+            Folder.name == fname,
+            (Folder.user_id == None) | (Folder.user_id == current_user.id)
+        ).first()
         if not folder_obj:
-            folder_obj = Folder(name=fname, description=f"Custom folder for {fname}")
+            folder_obj = Folder(
+                name=fname,
+                description=f"Custom folder for {fname}",
+                user_id=current_user.id
+            )
             db.add(folder_obj)
             db.commit()
             db.refresh(folder_obj)
         target_folder_id = folder_obj.id
 
     if not target_folder_id:
-        # Default fallback folder
-        folder_obj = db.query(Folder).filter(Folder.name == "General").first()
+        classified_name = classify_document_folder(file.filename, text_content, extracted_meta)
+        folder_obj = db.query(Folder).filter(
+            Folder.name == classified_name,
+            (Folder.user_id == None) | (Folder.user_id == current_user.id)
+        ).first()
         if not folder_obj:
-            folder_obj = Folder(name="General", description="General documents folder")
+            folder_obj = Folder(
+                name=classified_name,
+                description=f"{classified_name} documents folder",
+                user_id=current_user.id
+            )
             db.add(folder_obj)
             db.commit()
             db.refresh(folder_obj)
         target_folder_id = folder_obj.id
 
-    # Create local storage path
+    # Save physical copy in local storage directory
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     storage_dir = os.path.join(base_dir, settings.STORAGE_DIR)
     if not os.path.exists(storage_dir):
@@ -295,10 +299,20 @@ def upload_document(
     for k, v in extracted_meta.items():
         db.add(DocumentMetadata(document_id=document.id, meta_key=k, meta_value=str(v)))
 
-    db.add(ActivityLog(user_id=current_user.id, action="UPLOAD_DOC", details=f"Uploaded file '{file.filename}'"))
+    # Re-evaluate cross domain risks dynamically
+    evaluate_cross_domain_risks(db, current_user.id)
+
+    db.add(ActivityLog(user_id=current_user.id, event="UPLOAD_DOC", metadata_json={"details": f"Uploaded file '{file.filename}' with OCR & RAG indexing"}))
     db.commit()
 
-    return {"id": document.id, "name": document.name, "folder_id": target_folder_id, "metadata": extracted_meta, "message": "File uploaded, parsed and classified successfully"}
+    return {
+        "id": document.id,
+        "name": document.name,
+        "folder_id": target_folder_id,
+        "metadata": extracted_meta,
+        "word_count": extracted_meta.get("ocr_word_count", "0"),
+        "message": "File processed with OCR, classified into life folder, and indexed in RAG knowledge base successfully"
+    }
 
 @router.post("/assistant/query")
 def query_ai_assistant(
@@ -306,8 +320,8 @@ def query_ai_assistant(
     current_user: User = Depends(deps.get_current_user),
     db: Session = Depends(get_db)
 ):
-    result = answer_ai_assistant_query(db, current_user.id, payload.query)
-    db.add(ActivityLog(user_id=current_user.id, action="AI_ASSISTANT_QUERY", details=f"Query: {payload.query[:50]}"))
+    result = answer_ai_assistant_query(db, current_user, payload.query)
+    db.add(ActivityLog(user_id=current_user.id, event="AI_ASSISTANT_QUERY", metadata_json={"details": f"Query: {payload.query[:50]}"}))
     db.commit()
     return result
 
@@ -429,7 +443,7 @@ def delete_document(
     # Delete document entry
     db.delete(doc)
     
-    db.add(ActivityLog(user_id=current_user.id, action="DELETE_DOC", details=f"Deleted document '{doc.name}'"))
+    db.add(ActivityLog(user_id=current_user.id, event="DELETE_DOC", metadata_json={"details": f"Deleted document '{doc.name}'"}))
     db.commit()
     return {"message": "Document deleted successfully"}
 
@@ -508,8 +522,8 @@ def get_admin_metrics(current_user: User = Depends(deps.get_current_user), db: S
 
     # Action type breakdown
     action_counts = (
-        db.query(ActivityLog.action, sqlfunc.count(ActivityLog.id).label("count"))
-        .group_by(ActivityLog.action)
+        db.query(ActivityLog.event, sqlfunc.count(ActivityLog.id).label("count"))
+        .group_by(ActivityLog.event)
         .all()
     )
 
@@ -541,8 +555,8 @@ def get_admin_metrics(current_user: User = Depends(deps.get_current_user), db: S
                 "id": log.id,
                 "user_id": log.user_id,
                 "user_email": email or "unknown",
-                "action": log.action,
-                "details": log.details,
+                "action": log.event,
+                "details": log.metadata_json.get("details", "") if log.metadata_json else "",
                 "created_at": log.created_at.isoformat() if log.created_at else None
             }
             for log, email in recent_logs
@@ -591,7 +605,7 @@ def update_emergency_profile(
     if payload.trusted_contacts_json is not None:
         profile.trusted_contacts_json = payload.trusted_contacts_json
 
-    db.add(ActivityLog(user_id=current_user.id, action="UPDATE_EMERGENCY_PROFILE", details="Updated emergency profile details"))
+    db.add(ActivityLog(user_id=current_user.id, event="UPDATE_EMERGENCY_PROFILE", metadata_json={"details": "Updated emergency profile details"}))
     db.commit()
     db.refresh(profile)
 

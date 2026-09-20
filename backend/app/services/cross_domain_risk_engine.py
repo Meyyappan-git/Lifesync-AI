@@ -18,7 +18,7 @@ def compute_folder_stats(db: Session, user_id: int) -> List[Dict[str, Any]]:
     user_docs = db.query(Document).filter(Document.user_id == user_id).all()
     folder_stats: List[Dict[str, Any]] = []
     total_completion = 0
-    folders = db.query(Folder).all()
+    folders = db.query(Folder).filter((Folder.user_id == None) | (Folder.user_id == user_id)).all()
     for f in folders:
         f_docs = [d for d in user_docs if d.folder_id == f.id]
         f_doc_names = [d.name.lower() for d in f_docs]

@@ -1,71 +1,104 @@
+import logging
+import uuid
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
-from app.models.core_models import Document
-from app.services.cross_domain_risk_engine import calculate_life_health_score
-from app.services.rag_retriever import retrieve_relevant_chunks, build_user_rag_chunks
+from app.models.core_models import ChatMessage
+from app.models.user import User
+from app.schemas.rag import RAGAPIResponse, SourceChunk
 
+from app.services.rag.query_understanding import understand_query
+from app.services.rag.retrieval import retrieve
+from app.services.rag.context_builder import build_context
+from app.services.rag.generation import generate_answer
+from app.services.rag.postprocess import postprocess_response, fallback_response
 
-def answer_ai_assistant_query(db: Session, user_id: int, query: str) -> Dict[str, Any]:
-    """
-    RAG & Natural Language Life Assistant query engine.
-    Retrieves vector-matched context chunks and synthesizes an augmented response with sources.
-    """
-    q_lower = query.lower()
-    health_data = calculate_life_health_score(db, user_id)
-    user_docs = db.query(Document).filter(Document.user_id == user_id).all()
+logger = logging.getLogger(__name__)
 
-    # Perform Hybrid Vector Retrieval over user's indexed chunks
-    retrieved_pairs = retrieve_relevant_chunks(db, user_id, query, top_k=4)
+def answer_ai_assistant_query(db: Session, user: User, query: str) -> Dict[str, Any]:
+    request_id = str(uuid.uuid4())
+    logger.info(f"[{request_id}] Processing AI Assistant Query for user {user.id}")
+    
+    # Get history
+    history_records = db.query(ChatMessage).filter(ChatMessage.user_id == user.id).order_by(ChatMessage.created_at.desc()).limit(6).all()
+    history_records.reverse()
+    history = [{"role": m.role, "content": m.content} for m in history_records]
+    
+    # Save user query
+    user_msg = ChatMessage(user_id=user.id, role="user", content=query)
+    db.add(user_msg)
+    db.commit()
+    
+    try:
+        # 1. Query Understanding
+        understanding = understand_query(query, history)
+        
+        # 2. Retrieval
+        chunks = retrieve(db, user.id, understanding)
+        
+        # 3. Context Builder
+        context = build_context(chunks)
+        history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in history[-3:]])
+        
+        # 4. Generation
+        rag_response = generate_answer(context, history_str, query, user.full_name)
+        
+        # 5. Postprocess
+        rag_response = postprocess_response(rag_response, understanding.intent, {c.chunk_id for c in chunks})
+        
+        # Build API Response Sources
+        sources = []
+        for c in chunks:
+            if c.doc_id in rag_response.used_sources:
+                sources.append(SourceChunk(
+                    id=c.doc_id, # Or something unique
+                    document_id=c.doc_id,
+                    name=c.source_doc,
+                    folder=c.folder_name,
+                    page=str(c.chunk_index)
+                ))
+                
+        # Save assistant msg
+        assistant_msg = ChatMessage(user_id=user.id, role="assistant", content=rag_response.answer)
+        db.add(assistant_msg)
+        db.commit()
+        
+        return RAGAPIResponse(
+            answer=rag_response.answer,
+            sources=sources,
+            found=rag_response.found,
+            confidence=rag_response.confidence,
+            request_id=request_id
+        ).model_dump()
+        
+    except Exception as e:
+        logger.error(f"[{request_id}] LLM pipeline failed: {str(e)}")
+        
+        if "api_key" in str(e).lower() or "credentials" in str(e).lower() or "401" in str(e):
+            logger.info(f"[{request_id}] Returning mock RAG response due to missing API key")
+            mock_sources = []
+            if 'chunks' in locals():
+                for c in chunks:
+                    mock_sources.append(SourceChunk(
+                        id=c.doc_id,
+                        document_id=c.doc_id,
+                        name=c.source_doc,
+                        folder=c.folder_name,
+                        page=str(c.chunk_index)
+                    ))
+            
+            return RAGAPIResponse(
+                answer="*This is a mock response because a valid OpenAI API key was not provided.* \n\nI have successfully retrieved your documents using RapidFuzz and vector similarity! As you can see below, the context has been extracted and I'm ready to answer questions once the API key is set.",
+                sources=mock_sources[:3],
+                found=True,
+                confidence="high",
+                request_id=request_id
+            ).model_dump()
 
-    retrieved_chunks = []
-    sources = set()
-
-    for chunk, score in retrieved_pairs:
-        sources.add(chunk.source_doc)
-        retrieved_chunks.append({
-            "chunk_id": chunk.chunk_id,
-            "source_doc": chunk.source_doc,
-            "folder_name": chunk.folder_name,
-            "relevance_score": score,
-            "snippet": chunk.text[:300] + ("..." if len(chunk.text) > 300 else "")
-        })
-
-    # Synthesize Answer based on intent & retrieved RAG context
-    if retrieved_pairs:
-        top_chunk, top_score = retrieved_pairs[0]
-        chunk_snippets = "\n\n".join([f"📄 **{c.source_doc}** ({c.folder_name} Folder):\n{c.text}" for c, _ in retrieved_pairs])
-
-        if "expire" in q_lower or "expiry" in q_lower or "renew" in q_lower:
-            answer = f"Based on your indexed documents, here are the relevant expiries & deadlines:\n\n{chunk_snippets}"
-        elif "risk" in q_lower or "alert" in q_lower or "critical" in q_lower:
-            answer = f"Here is the risk & compliance analysis matching your query:\n\n{chunk_snippets}"
-        elif "emergency" in q_lower or "blood" in q_lower or "allergy" in q_lower or "contact" in q_lower:
-            answer = f"Retrieved from your Emergency Vault & Document Index:\n\n{chunk_snippets}"
-        else:
-            answer = f"I found **{len(retrieved_pairs)} relevant document matches** for your query:\n\n{chunk_snippets}"
-    else:
-        # Fallback if no specific doc match was found in vector search
-        if "missing" in q_lower or "incomplete" in q_lower or "folder" in q_lower:
-            missing_summary = []
-            for f in health_data.get("folder_stats", []):
-                if f["missing_docs"]:
-                    missing_summary.append(f"📁 **{f['folder_name']} Folder** ({f['completion_pct']}% Complete)\n  Missing: {', '.join(f['missing_docs'])}")
-            if missing_summary:
-                answer = "Here is your folder completeness report and missing documents:\n\n" + "\n\n".join(missing_summary)
-            else:
-                answer = "All your life folders are 100% complete! Excellent organization."
-        else:
-            answer = (
-                f"I checked your {len(user_docs)} indexed documents across 7 life folders, but didn't find a direct keyword match for '{query}'.\n\n"
-                f"• Current Life Health Score: **{health_data['life_health_score']}/100**\n"
-                f"• Active Risk Alerts: **{health_data['active_risks_count']}**\n\n"
-                f"Try asking about specific folders (e.g., 'Vehicle', 'Travel', 'Health'), 'What expires next month?', or 'Show active risks'."
-            )
-
-    return {
-        "query": query,
-        "answer": answer,
-        "health_score": health_data["life_health_score"],
-        "sources": list(sources),
-        "retrieved_chunks": retrieved_chunks
-    }
+        fallback = fallback_response()
+        return RAGAPIResponse(
+            answer=fallback,
+            sources=[],
+            found=False,
+            confidence="low",
+            request_id=request_id
+        ).model_dump()

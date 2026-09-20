@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON, Boolean, Uuid
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
@@ -6,21 +6,26 @@ from app.db.base_class import Base
 class SessionRecord(Base):
     __tablename__ = "session_records"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     refresh_token = Column(String, nullable=False, index=True)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Folder(Base):
     __tablename__ = "folders"
+
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False, unique=True) # e.g. "Vehicle", "Travel", "Health"
+    name = Column(String, nullable=False) # Removed unique=True to allow same name for different users
     description = Column(String, nullable=True)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=True) # Null for system folders
+
+    user = relationship("User", backref="custom_folders")
+    documents = relationship("Document", back_populates="folder")
 
 class Document(Base):
     __tablename__ = "documents"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     folder_id = Column(Integer, ForeignKey("folders.id", ondelete="SET NULL"), nullable=True)
     name = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
@@ -29,7 +34,7 @@ class Document(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", backref="documents")
-    folder = relationship("Folder", backref="documents")
+    folder = relationship("Folder", back_populates="documents")
 
 class DocumentMetadata(Base):
     __tablename__ = "document_metadata"
@@ -43,7 +48,7 @@ class DocumentMetadata(Base):
 class RiskAlert(Base):
     __tablename__ = "risk_alerts"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     risk_level = Column(String, nullable=False) # "Critical", "High", "Medium", "Low"
     reason = Column(Text, nullable=False)
@@ -57,7 +62,7 @@ class RiskAlert(Base):
 class Reminder(Base):
     __tablename__ = "reminders"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     message = Column(Text, nullable=True)
     trigger_time = Column(DateTime, nullable=False)
@@ -69,7 +74,7 @@ class Reminder(Base):
 class EmergencyProfile(Base):
     __tablename__ = "emergency_profiles"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
     blood_group = Column(String, nullable=True)
     medical_conditions = Column(Text, nullable=True)
     emergency_contact_name = Column(String, nullable=True)
@@ -81,20 +86,19 @@ class EmergencyProfile(Base):
 class DocumentRelationship(Base):
     __tablename__ = "document_relationships"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     source_document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
     target_document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
     relationship_type = Column(String, nullable=False) # e.g. "depends_on", "related_to", "supersedes"
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-class ActivityLog(Base):
-    __tablename__ = "activity_logs"
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    action = Column(String, nullable=False) # e.g. "LOGIN", "UPLOAD_DOC", "CROSS_DOMAIN_RISK"
-    details = Column(Text, nullable=True)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role = Column(String, nullable=False) # "user" or "assistant"
+    content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    user = relationship("User", backref="activity_logs")
-
+    
+    user = relationship("User", backref="chat_messages")

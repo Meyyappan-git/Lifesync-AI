@@ -1,54 +1,72 @@
-from typing import Optional
+import uuid
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, field_validator, model_validator
+from typing import Optional
+from pydantic import BaseModel, EmailStr, ConfigDict
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    emergency_contact_name: Optional[str] = None
-    emergency_contact_phone: Optional[str] = None
+    full_name: str
+    role: str = "user"
+    is_active: bool = True
+    email_verified_at: Optional[datetime] = None
 
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    email: EmailStr
     password: str
-    confirm_password: str
-
-    @field_validator("password")
-    @classmethod
-    def validate_password_strength(cls, value: str) -> str:
-        if len(value) < 10:
-            raise ValueError("Password must be at least 10 characters long")
-        if not any(char.isupper() for char in value):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not any(char.islower() for char in value):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not any(char.isdigit() for char in value):
-            raise ValueError("Password must contain at least one number")
-        if not any(not char.isalnum() for char in value):
-            raise ValueError("Password must contain at least one symbol")
-        return value
-
-    @model_validator(mode="after")
-    def passwords_match(self) -> "UserCreate":
-        if self.password != self.confirm_password:
-            raise ValueError("Passwords do not match")
-        return self
+    full_name: str
 
 
-class UserUpdate(UserBase):
-    password: Optional[str] = None
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
 
 
-class UserInDBBase(UserBase):
-    id: int
+class UserResponse(UserBase):
+    id: uuid.UUID
+    email_verified: bool = False
+    last_login_at: Optional[datetime] = None
     created_at: datetime
-    updated_at: Optional[datetime] = None
+    updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-class User(UserInDBBase):
-    pass
+# Backward compatibility alias
+User = UserResponse
+
+
+class SessionResponse(BaseModel):
+    id: uuid.UUID
+    user_agent: Optional[str] = None
+    ip: Optional[str] = None
+    created_at: datetime
+    last_used_at: datetime
+    expires_at: datetime
+    is_current: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ActivityLogResponse(BaseModel):
+    id: uuid.UUID
+    event: str
+    ip: Optional[str] = None
+    user_agent: Optional[str] = None
+    metadata: Optional[dict] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def model_validate(cls, obj, *args, **kwargs):
+        if hasattr(obj, "metadata_json"):
+            return cls(
+                id=obj.id,
+                event=obj.event,
+                ip=obj.ip,
+                user_agent=obj.user_agent,
+                metadata=obj.metadata_json,
+                created_at=obj.created_at,
+            )
+        return super().model_validate(obj, *args, **kwargs)
