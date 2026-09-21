@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { apiClient, API_URL } from "@/lib/api-client";
+import { apiClient } from "@/lib/api-client";
+import { getAccessToken } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, Clock, FolderKanban, Download, Calendar, Tag, Eye } from "lucide-react";
 
@@ -38,10 +39,10 @@ export default function DocumentPage() {
   // Fetch the file as a blob with the auth token for preview
   useEffect(() => {
     if (!doc) return;
-    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    const token = getAccessToken();
     if (!token) return;
 
-    fetch(`${API_URL}/api/v1/lifesync/documents/${doc.id}/download`, {
+    fetch(`/api/v1/lifesync/documents/${doc.id}/download`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -251,6 +252,26 @@ export default function DocumentPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* OCR Extracted Text & RAG Index Status */}
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <FileText className="h-4 w-4 text-emerald-400" /> OCR Extracted Text & RAG Knowledge Index
+              </h2>
+              <span className="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/20 font-medium">
+                Indexed in RAG Vector Store
+              </span>
+            </div>
+
+            {doc.raw_content ? (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 font-mono text-xs text-zinc-300 whitespace-pre-wrap max-h-96 overflow-y-auto leading-relaxed">
+                {doc.raw_content}
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-500 italic">No OCR raw text extracted yet.</p>
+            )}
           </div>
         </>
       )}

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { 
   HeartHandshake, LayoutDashboard, FolderKanban, ShieldAlert, Sparkles, 
-  LogOut, Plane, ShieldCheck, Bot, Flame
+  LogOut, Plane, ShieldCheck, Bot, Flame, Settings
 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 
 import { Suspense } from "react";
 
@@ -61,6 +61,9 @@ function SidebarNav() {
           <>
             <p className="font-bold text-zinc-200">Signed in as</p>
             <p className="text-white truncate">{user.email}</p>
+            <Link href="/dashboard/settings" className="mt-3 flex items-center gap-2 text-indigo-400 font-bold hover:text-indigo-300">
+              <Settings className="h-3.5 w-3.5" /> Account Settings
+            </Link>
             <button onClick={() => logout()} className="mt-3 flex items-center gap-2 text-rose-400 font-bold hover:text-rose-300">
               <LogOut className="h-3.5 w-3.5" /> Sign out
             </button>

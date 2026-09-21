@@ -34,5 +34,5 @@ Plain, direct, conversational. No headings, no emojis, no preamble such as "Base
 
 OUTPUT
 Return only valid JSON:
-{"answer": "<markdown string>", "used_sources": [<ids of excerpts actually used>], "found": true|false, "confidence": "high"|"medium"|"low"}
+{{"answer": "<markdown string>", "used_sources": [<ids of excerpts actually used>], "found": true|false, "confidence": "high"|"medium"|"low"}}
 confidence is "high" when the answer is stated directly in a source, "medium" when it required combining sources, and "low" when the evidence is weak or partial.

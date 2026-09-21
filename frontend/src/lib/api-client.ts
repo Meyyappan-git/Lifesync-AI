@@ -1,4 +1,6 @@
 // src/lib/api-client.ts
+import { fetchWithAuth } from "@/lib/api/client";
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export class ApiError extends Error {
@@ -11,50 +13,27 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_URL}${endpoint}`;
-
-  let token = null;
-  if (typeof window !== "undefined") {
-    token = localStorage.getItem("accessToken");
-  }
-
-  const headers = new Headers(options.headers);
-  if (!headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  const response = await fetch(url, { ...options, headers, credentials: "include" });
-
-  if (!response.ok) {
-    let errorData = null;
-    try {
-      errorData = await response.json();
-    } catch (e) {
-      // no json body
-    }
-    throw new ApiError(response.status, errorData);
-  }
-
-  // Handle 204 No Content
-  if (response.status === 204) {
-    return {} as T;
-  }
-
-  return response.json();
-}
+// Ensure endpoint starts with a slash
+const formatEndpoint = (endpoint: string) => endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
 export const apiClient = {
-  get: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { ...options, method: "GET" }),
+  get: <T>(endpoint: string, options?: RequestInit) => 
+    fetchWithAuth<T>(formatEndpoint(endpoint), { ...options, method: "GET" }),
+    
   post: <T>(endpoint: string, body: any, options?: RequestInit) => {
     const isUrlEncoded = options?.headers && 
       (new Headers(options.headers)).get("Content-Type")?.includes("x-www-form-urlencoded");
-    const formattedBody = isUrlEncoded ? body : JSON.stringify(body);
-    return request<T>(endpoint, { ...options, method: "POST", body: formattedBody });
+    const isFormData = body instanceof FormData;
+    const formattedBody = (isUrlEncoded || isFormData) ? body : JSON.stringify(body);
+    return fetchWithAuth<T>(formatEndpoint(endpoint), { ...options, method: "POST", body: formattedBody });
   },
-  put: <T>(endpoint: string, body: any, options?: RequestInit) => request<T>(endpoint, { ...options, method: "PUT", body: JSON.stringify(body) }),
-  delete: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { ...options, method: "DELETE" }),
+  
+  put: <T>(endpoint: string, body: any, options?: RequestInit) => {
+    const isFormData = body instanceof FormData;
+    const formattedBody = isFormData ? body : JSON.stringify(body);
+    return fetchWithAuth<T>(formatEndpoint(endpoint), { ...options, method: "PUT", body: formattedBody });
+  },
+    
+  delete: <T>(endpoint: string, options?: RequestInit) => 
+    fetchWithAuth<T>(formatEndpoint(endpoint), { ...options, method: "DELETE" }),
 };

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Lato, Geist_Mono } from "next/font/google";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider } from "@/lib/auth/auth-context";
 import "./globals.css";
 
 const lato = Lato({

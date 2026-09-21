@@ -38,7 +38,7 @@ class AIService:
         Analyzes health inputs and returns a tuple: (cautions, remedies).
         Uses OpenAI + LangChain if API key is present, otherwise falls back to a rule-based mock analyzer.
         """
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
         
         # Prepare content string for analysis
         if report_type == "file":
@@ -55,11 +55,15 @@ class AIService:
 
         if api_key:
             try:
-                from langchain_openai import ChatOpenAI
+                from langchain_groq import ChatGroq
                 from langchain_core.prompts import ChatPromptTemplate
                 from langchain_core.output_parsers import StrOutputParser
 
-                llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=api_key)
+                llm = ChatGroq(
+                    model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+                    temperature=0.3,
+                    api_key=api_key
+                )
                 
                 # We want clean, parsed outputs
                 cautions_prompt = ChatPromptTemplate.from_messages([
@@ -156,7 +160,7 @@ class AIService:
         remedies_md = "\n".join([f"- {r}" for r in remedies_list])
 
         # Prepend a mock banner if OpenAI was bypassed
-        if not os.getenv("OPENAI_API_KEY"):
-            cautions_md = "> [!NOTE]\n> *Using Rule-Based Health Analyzer (configure `OPENAI_API_KEY` for AI predictions)*\n\n" + cautions_md
+        if not os.getenv("GROQ_API_KEY"):
+            cautions_md = "> [!NOTE]\n> *Using Rule-Based Health Analyzer (configure `GROQ_API_KEY` for AI predictions)*\n\n" + cautions_md
 
         return cautions_md, remedies_md

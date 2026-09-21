@@ -1,27 +1,28 @@
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  HeartHandshake, Shield, Sparkles, Activity, ArrowRight, FolderKanban,
-  AlertTriangle, Bot, Plane, FileText, CheckCircle2, ChevronRight, Zap, Lock
+  ShieldCheck, Sparkles, Activity, ArrowRight, FolderKanban,
+  AlertTriangle, Bot, Plane, FileText, CheckCircle2, ChevronRight, Zap, Lock,
+  FileCheck, Calendar, RefreshCw, Cpu, Layers, Shield, Eye, Award
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { user, isLoading } = useAuth();
+  const { user, status } = useAuth();
   const router = useRouter();
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (status !== "loading" && user) {
       router.push("/dashboard");
     }
-  }, [user, isLoading, router]);
+  }, [user, status, router]);
 
-  if (isLoading) {
+  if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
         <Activity className="h-10 w-10 animate-spin text-indigo-500" />
@@ -32,42 +33,45 @@ export default function Home() {
   const faqs = [
     {
       q: "How does the Cross-Domain Risk Correlation Engine work?",
-      a: "Unlike simple calendar apps, LifeSync AI correlates documents across 7 life folders (Vehicle, Travel, Health, Education, Employment, Finance, Property). For example, it detects if your Passport expires within 6 months while an international Flight Ticket is booked, generating a Critical Alert."
+      a: "Unlike traditional calendar reminders, LifeSync AI correlates documents across 7 distinct life folders (Vehicle, Travel, Health, Education, Employment, Finance, Property). For example, it cross-checks international flight tickets against passport expiry dates to flag entry refusal risks months in advance."
     },
     {
       q: "What document formats are supported for AI extraction?",
-      a: "LifeSync AI supports PDF, Images (JPEG/PNG), and DOCX files. OCR automatically extracts Expiry Dates, Passport Numbers, Policy Numbers, Vehicle Numbers, PAN/Aadhaar IDs, and names."
+      a: "LifeSync AI supports PDFs, scanned images (PNG, JPEG, WEBP), and plain text documents. The OCR engine automatically parses attributes including Expiry Dates, Passport Numbers, Policy Numbers, Vehicle Numbers, and Tax IDs."
     },
     {
-      q: "Are my sensitive documents secure?",
-      a: "Yes. LifeSync AI uses AES-256 encrypted storage, strict JWT session management, role-based access controls, and an isolated encrypted Emergency Vault for critical medical and contact data."
+      q: "Is my personal document data secure?",
+      a: "Yes. LifeSync AI employs end-to-end AES-256 encryption, httpOnly session security with single-flight refresh token rotation, anti-enumeration authentication, and isolated encrypted vaults for emergency medical profiles."
     },
     {
-      q: "Can I use LifeSync AI without uploading files initially?",
-      a: "Absolutely. You can start by continuing as a Guest or creating an account, manually logging key details, or using the RAG Life Assistant."
+      q: "Can I explore LifeSync AI without uploading sensitive files immediately?",
+      a: "Yes! You can explore the full platform using our interactive Demo Workspace in Guest Mode without needing to register or upload any private documents."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans relative overflow-x-hidden">
-      {/* Dynamic Ambient Background Glows */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[140px] pointer-events-none" />
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-indigo-500/30 selection:text-indigo-200">
+      {/* Ambient background glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-indigo-500/15 via-purple-500/10 to-transparent blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 -left-48 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-48 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[160px] pointer-events-none" />
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 p-0.5 shadow-lg shadow-indigo-500/20">
-              <div className="h-full w-full bg-zinc-950 rounded-[10px] flex items-center justify-center">
-                <HeartHandshake className="h-5 w-5 text-indigo-400" />
+      {/* Grid Pattern overlay */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-60 pointer-events-none" />
+
+      {/* Header Navigation */}
+      <header className="sticky top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 p-0.5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+              <div className="h-full w-full bg-zinc-950 rounded-[14px] flex items-center justify-center">
+                <ShieldCheck className="h-5 w-5 text-indigo-400" />
               </div>
             </div>
-            <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent">
+            <span className="font-black text-xl tracking-tight bg-gradient-to-r from-white via-zinc-200 to-indigo-300 bg-clip-text text-transparent">
               LifeSync AI
             </span>
-          </div>
+          </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -79,10 +83,12 @@ export default function Home() {
 
           <div className="flex items-center gap-3">
             <Link href="/login">
-              <Button variant="ghost" className="text-zinc-300 hover:text-white hover:bg-zinc-900 border border-zinc-800/60 rounded-xl">Sign In</Button>
+              <Button variant="ghost" className="text-zinc-300 hover:text-white hover:bg-zinc-900 border border-zinc-800/80 rounded-2xl px-5 font-semibold text-xs">
+                Sign In
+              </Button>
             </Link>
             <Link href="/register">
-              <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/25 px-5">
+              <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-600/25 px-5 text-xs transition-all hover:scale-[1.02]">
                 Get Started
               </Button>
             </Link>
@@ -91,71 +97,92 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-sm font-medium mb-8 backdrop-blur-md">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-mono font-bold tracking-wider mb-8 backdrop-blur-xl animate-in fade-in duration-500">
           <Sparkles className="h-4 w-4 text-indigo-400 animate-pulse" />
-          <span>Next-Gen Cross-Domain Intelligence Engine</span>
+          NEXT-GEN CROSS-DOMAIN CORRELATION ENGINE 2.0
         </div>
 
-        <h1 className="text-4xl sm:text-7xl font-black tracking-tight leading-[1.1] max-w-4xl mx-auto bg-gradient-to-b from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
-          Intelligent Life Management & Cross-Domain Risk Correlation
+        <h1 className="text-4xl sm:text-7xl font-black tracking-tight leading-[1.08] max-w-5xl mx-auto bg-gradient-to-b from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
+          Your Intelligent Life Operating System & Risk Radar
         </h1>
 
         <p className="mt-8 text-zinc-400 text-lg sm:text-2xl leading-relaxed max-w-3xl mx-auto font-light">
-          Automatically extract data from documents, auto-organize into 7 Smart Life Folders, predict hidden cross-folder risks, and receive proactive preventive recommendations before deadlines expire.
+          Automatically extract data from documents, organize records into 7 Smart Life Folders, correlate hidden cross-folder risks, and query your vault with AI.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto">
           <Link href="/register" className="w-full sm:w-auto">
-            <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-6 rounded-2xl shadow-xl shadow-indigo-600/30 text-base flex items-center justify-center gap-2">
+            <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-6 rounded-2xl shadow-xl shadow-indigo-600/30 text-base flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
               Launch Platform <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
           <Link href="/dashboard?guest=1" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-200 px-8 py-6 rounded-2xl text-base backdrop-blur-md">
+            <Button variant="outline" className="w-full border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-200 px-8 py-6 rounded-2xl text-base backdrop-blur-xl transition-all hover:scale-[1.02]">
               Explore Demo Workspace
             </Button>
           </Link>
         </div>
 
-        {/* Dashboard Preview Banner */}
-        <div className="mt-16 relative mx-auto max-w-5xl rounded-3xl border border-zinc-800/80 bg-zinc-900/40 p-4 backdrop-blur-2xl shadow-2xl shadow-indigo-950/50">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 text-left space-y-4">
+        {/* Feature Highlights Pills */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-3 text-xs text-zinc-400 font-mono">
+          <span className="px-3.5 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/80 flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-indigo-400" /> Multimodal OCR
+          </span>
+          <span className="px-3.5 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/80 flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-purple-400" /> RAG Assistant
+          </span>
+          <span className="px-3.5 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/80 flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400" /> AES-256 Vault
+          </span>
+          <span className="px-3.5 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/80 flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Instant Expiry Alerts
+          </span>
+        </div>
+
+        {/* Interactive UI Dashboard Preview Frame */}
+        <div className="mt-16 relative mx-auto max-w-6xl rounded-3xl border border-zinc-800/90 bg-zinc-900/60 p-4 sm:p-6 backdrop-blur-2xl shadow-2xl shadow-indigo-950/40">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 text-left space-y-6">
+            {/* Window bar */}
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="h-3 w-3 rounded-full bg-red-500" />
-                <div className="h-3 w-3 rounded-full bg-amber-500" />
-                <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                <span className="text-xs text-zinc-400 font-mono ml-2">lifesync.app/dashboard</span>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-red-500/80" />
+                <div className="h-3 w-3 rounded-full bg-amber-500/80" />
+                <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
+                <span className="text-xs font-mono text-zinc-500 ml-2">https://app.lifesync.ai/dashboard</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3.5 py-1 rounded-full border border-emerald-500/20">
                 <Activity className="h-3.5 w-3.5" /> Life Health Score: 92/100
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-red-950/30 border border-red-800/40 flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-red-200 uppercase tracking-wider">Critical Risk Correlation</h4>
-                  <p className="text-xs text-red-300/80 mt-1">Flight Ticket booked + Passport expires within 6 months.</p>
+            {/* Dashboard Cards Grid Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="p-5 rounded-2xl bg-red-950/30 border border-red-900/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30">CRITICAL RISK</span>
+                  <span className="text-[10px] font-mono text-zinc-500">Travel Folder</span>
                 </div>
+                <h4 className="text-sm font-bold text-white mt-1">Passport Expiring Before Flight</h4>
+                <p className="text-xs text-zinc-400">Flight ticket booked for Sept 25, but Passport expires in 45 days.</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex items-start gap-3">
-                <FolderKanban className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">Vehicle Folder</h4>
-                  <p className="text-xs text-zinc-400 mt-1">Completion: 85% • Missing PUC Certificate</p>
+              <div className="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">SMART FOLDER</span>
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold">85% Complete</span>
                 </div>
+                <h4 className="text-sm font-bold text-white mt-1">Vehicle Documents</h4>
+                <p className="text-xs text-zinc-400">Driving Licence & Insurance active. Missing: PUC Certificate.</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex items-start gap-3">
-                <Bot className="h-5 w-5 text-purple-400 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">AI Life Assistant</h4>
-                  <p className="text-xs text-zinc-400 mt-1">&quot;What documents expire next month?&quot;</p>
+              <div className="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">AI RAG ASSISTANT</span>
+                  <Bot className="h-3.5 w-3.5 text-purple-400" />
                 </div>
+                <h4 className="text-sm font-bold text-white mt-1">&quot;What is my CGPA?&quot;</h4>
+                <p className="text-xs text-zinc-400">&quot;Your CGPA is **8.23** as extracted from your Degree Transcript.&quot;</p>
               </div>
             </div>
           </div>
@@ -166,70 +193,75 @@ export default function Home() {
       <section id="cross-domain" className="py-24 bg-zinc-900/40 border-y border-zinc-800/80 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <span className="text-xs font-semibold text-indigo-400 tracking-widest uppercase bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-              Core Innovation
+            <span className="text-xs font-mono font-bold text-indigo-400 tracking-widest uppercase bg-indigo-500/10 px-3.5 py-1.5 rounded-full border border-indigo-500/20">
+              CORE INNOVATION
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white">Cross-Domain Risk Correlation Engine</h2>
-            <p className="text-zinc-400 text-lg">
-              Ordinary apps send basic calendar reminders. LifeSync AI correlates across 7 distinct life folders to detect compound risks human oversight misses.
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Cross-Domain Risk Correlation Engine</h2>
+            <p className="text-zinc-400 text-lg font-light">
+              Traditional apps only send basic date reminders. LifeSync AI correlates across 7 life folders to surface compound risks human oversight misses.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="p-8 rounded-3xl bg-zinc-950 border border-red-900/30 hover:border-red-500/50 transition-all space-y-4 shadow-xl">
+            <div className="p-8 rounded-3xl bg-zinc-950 border border-red-950/60 hover:border-red-500/40 transition-all space-y-5 shadow-2xl group">
               <div className="flex items-center justify-between">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">CRITICAL ALERT</span>
-                <span className="text-xs text-zinc-500 font-mono">Travel + Health Folder</span>
+                <span className="px-3.5 py-1 rounded-lg text-xs font-mono font-black bg-red-500/20 text-red-400 border border-red-500/30 uppercase tracking-wider">CRITICAL RISK</span>
+                <span className="text-xs font-mono text-zinc-500">Travel + Passport</span>
               </div>
-              <h3 className="text-xl font-bold text-zinc-100">Hotel Booking + Visa Missing</h3>
+              <h3 className="text-xl font-bold text-white group-hover:text-red-300 transition-colors">Flight Booked + Passport Expiring &lt; 6 Months</h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                Detected international hotel reservation in Travel Folder, but no valid Visa document is present. Risk of booking cancellation and entry refusal.
+                Detected international flight confirmation in Travel Folder, but Passport expires within 6 months. Most airlines and countries deny boarding and entry.
               </p>
-              <div className="pt-2 text-xs font-medium text-indigo-400 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" /> Action: Apply for E-Visa or upload existing copy
+              <div className="pt-3 border-t border-zinc-900 text-xs font-medium text-indigo-400 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" /> Recommended Action: Renew Passport via Passport Seva / Embassy immediately
               </div>
             </div>
 
-            <div className="p-8 rounded-3xl bg-zinc-950 border border-amber-900/30 hover:border-amber-500/50 transition-all space-y-4 shadow-xl">
+            <div className="p-8 rounded-3xl bg-zinc-950 border border-amber-950/60 hover:border-amber-500/40 transition-all space-y-5 shadow-2xl group">
               <div className="flex items-center justify-between">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">HIGH RISK</span>
-                <span className="text-xs text-zinc-500 font-mono">Vehicle + Employment</span>
+                <span className="px-3.5 py-1 rounded-lg text-xs font-mono font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase tracking-wider">HIGH RISK</span>
+                <span className="text-xs font-mono text-zinc-500">Vehicle + Licence</span>
               </div>
-              <h3 className="text-xl font-bold text-zinc-100">Expired DL + Active Vehicle Ownership</h3>
+              <h3 className="text-xl font-bold text-white group-hover:text-amber-300 transition-colors">Expired DL + Active Vehicle Registration</h3>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                Driving Licence expired while owning an active vehicle. Driving without valid DL voids motor insurance coverage completely.
+                Driving Licence expired while owning an active vehicle registration. Operating a vehicle with an expired DL invalidates motor insurance coverage completely.
               </p>
-              <div className="pt-2 text-xs font-medium text-indigo-400 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" /> Action: Initiate RTO Licence Renewal immediately
+              <div className="pt-3 border-t border-zinc-900 text-xs font-medium text-indigo-400 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" /> Recommended Action: Apply for RTO Licence Renewal immediately
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Smart Life Folders */}
+      {/* 7 Smart Life Folders */}
       <section id="features" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white">7 AI Smart Life Folders</h2>
-          <p className="text-zinc-400 text-lg">
-            No manual folder creation needed. LifeSync AI automatically categorizes uploads and tracks folder completeness.
+          <span className="text-xs font-mono font-bold text-purple-400 tracking-widest uppercase bg-purple-500/10 px-3.5 py-1.5 rounded-full border border-purple-500/20">
+            SMART FOLDERS
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">7 Smart Life Domains</h2>
+          <p className="text-zinc-400 text-lg font-light">
+            Zero manual tagging needed. Upload your document and LifeSync AI automatically categorizes and extracts key expiry attributes.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { title: "Vehicle Folder", desc: "Driving Licence, RC Book, Vehicle Insurance, PUC, Road Tax", icon: Zap, color: "text-amber-400" },
-            { title: "Travel Folder", desc: "Passport, Visa, Flight Tickets, Hotel Bookings, Travel Insurance", icon: Plane, color: "text-cyan-400" },
-            { title: "Health Folder", desc: "Medical Reports, Prescriptions, Health Insurance, Vaccinations", icon: Activity, color: "text-emerald-400" },
-            { title: "Education Folder", desc: "Degree Certificates, Mark Sheets, Transfer Certificates", icon: FileText, color: "text-blue-400" },
+            { title: "Vehicle Folder", desc: "Driving Licence, RC Book, Insurance, PUC Certificate, Road Tax", icon: Zap, color: "text-amber-400" },
+            { title: "Travel Folder", desc: "Passport, Visa, Flight Tickets, Hotel Confirmation, Travel Insurance", icon: Plane, color: "text-cyan-400" },
+            { title: "Health Folder", desc: "Medical Reports, Prescriptions, Health Policy, Vaccination Cards", icon: Activity, color: "text-emerald-400" },
+            { title: "Education Folder", desc: "Degree Certificates, Mark Sheets, Academic Transcripts", icon: FileText, color: "text-blue-400" },
             { title: "Employment Folder", desc: "Offer Letter, Salary Slips, Experience Certificates, Contracts", icon: Shield, color: "text-purple-400" },
-            { title: "Finance Folder", desc: "PAN Card, Bank Statements, Tax Returns, Loans, Investments", icon: Sparkles, color: "text-indigo-400" },
+            { title: "Finance Folder", desc: "PAN Card, Bank Statements, Tax Returns (ITR), Loans, Investments", icon: Sparkles, color: "text-indigo-400" },
             { title: "Property Folder", desc: "Sale Deeds, Property Tax Receipts, Utility Bills, Lease Agreements", icon: FolderKanban, color: "text-rose-400" },
-            { title: "Emergency Vault", desc: "Encrypted Blood Group, Allergy History, Contacts, Medical Emergency", icon: Lock, color: "text-red-400" },
+            { title: "Emergency Vault", desc: "Blood Group, Medical Conditions, Primary & Trusted Contacts", icon: Lock, color: "text-red-400" },
           ].map((f, i) => (
-            <div key={i} className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700 transition-all space-y-3">
-              <f.icon className={`h-8 w-8 ${f.color}`} />
-              <h3 className="text-lg font-bold text-white">{f.title}</h3>
+            <div key={i} className="p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800/80 hover:border-indigo-500/40 transition-all space-y-3 shadow-xl backdrop-blur-xl group">
+              <div className="p-3 rounded-2xl bg-zinc-950 border border-zinc-800 w-fit group-hover:scale-110 transition-transform">
+                <f.icon className={`h-6 w-6 ${f.color}`} />
+              </div>
+              <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">{f.title}</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">{f.desc}</p>
             </div>
           ))}
@@ -240,57 +272,60 @@ export default function Home() {
       <section id="pricing" className="py-24 bg-zinc-900/40 border-t border-zinc-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white">Simple, Transparent Pricing</h2>
-            <p className="text-zinc-400 text-lg">Start free, upgrade as your document and risk correlation needs grow.</p>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Transparent Pricing</h2>
+            <p className="text-zinc-400 text-lg font-light">Start free, upgrade as your document vault and risk correlation needs scale.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 flex flex-col justify-between">
+            {/* Starter */}
+            <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-xl font-bold text-white">Starter</h3>
-                <p className="text-3xl font-extrabold text-white mt-4">$0 <span className="text-sm font-normal text-zinc-500">/mo</span></p>
-                <ul className="mt-6 space-y-3 text-sm text-zinc-400">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Up to 25 Documents</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Smart Folders</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Basic Expiry Alerts</li>
+                <p className="text-4xl font-extrabold text-white mt-4">$0 <span className="text-sm font-normal text-zinc-500">/mo</span></p>
+                <ul className="mt-8 space-y-3.5 text-sm text-zinc-400">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Up to 25 Documents</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> 7 Smart Life Folders</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Basic Expiry Alerts</li>
                 </ul>
               </div>
               <Link href="/register" className="mt-8">
-                <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl">Get Started</Button>
+                <Button className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 rounded-2xl py-6 font-semibold">Get Started Free</Button>
               </Link>
             </div>
 
-            <div className="p-8 rounded-3xl bg-gradient-to-b from-indigo-950/60 to-zinc-950 border-2 border-indigo-500 flex flex-col justify-between relative shadow-2xl shadow-indigo-950/50">
-              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-extrabold bg-indigo-500 text-white uppercase tracking-wider">
-                Most Popular
+            {/* Pro */}
+            <div className="p-8 rounded-3xl bg-gradient-to-b from-indigo-950/60 to-zinc-950 border-2 border-indigo-500 flex flex-col justify-between relative shadow-2xl shadow-indigo-950/60">
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-mono font-bold bg-indigo-600 text-white uppercase tracking-wider shadow-lg">
+                MOST POPULAR
               </span>
               <div>
                 <h3 className="text-xl font-bold text-white">Pro LifeSync</h3>
-                <p className="text-3xl font-extrabold text-white mt-4">$12 <span className="text-sm font-normal text-zinc-500">/mo</span></p>
-                <ul className="mt-6 space-y-3 text-sm text-zinc-300">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-indigo-400" /> Unlimited Documents & OCR</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-indigo-400" /> Cross-Domain Risk Correlation Engine</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-indigo-400" /> RAG Life Assistant</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-indigo-400" /> AI Travel Readiness Checker</li>
+                <p className="text-4xl font-extrabold text-white mt-4">$12 <span className="text-sm font-normal text-zinc-400">/mo</span></p>
+                <ul className="mt-8 space-y-3.5 text-sm text-zinc-200">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-indigo-400 shrink-0" /> Unlimited Documents & Multimodal OCR</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-indigo-400 shrink-0" /> Cross-Domain Risk Correlation Engine</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-indigo-400 shrink-0" /> Context-Aware RAG Life Assistant</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-indigo-400 shrink-0" /> AI Travel Readiness Checker</li>
                 </ul>
               </div>
               <Link href="/register" className="mt-8">
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/30">Start 14-Day Free Trial</Button>
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-2xl py-6 shadow-lg shadow-indigo-600/30">Start 14-Day Trial</Button>
               </Link>
             </div>
 
-            <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 flex flex-col justify-between">
+            {/* Enterprise */}
+            <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 flex flex-col justify-between shadow-xl">
               <div>
-                <h3 className="text-xl font-bold text-white">Enterprise / Family</h3>
-                <p className="text-3xl font-extrabold text-white mt-4">$29 <span className="text-sm font-normal text-zinc-500">/mo</span></p>
-                <ul className="mt-6 space-y-3 text-sm text-zinc-400">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Multi-User Family Vault</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Dedicated Admin Analytics</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Priority API & Storage</li>
+                <h3 className="text-xl font-bold text-white">Family / Vault</h3>
+                <p className="text-4xl font-extrabold text-white mt-4">$29 <span className="text-sm font-normal text-zinc-500">/mo</span></p>
+                <ul className="mt-8 space-y-3.5 text-sm text-zinc-400">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Multi-User Family Vault</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Admin Directory & Security Metrics</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" /> Priority OCR & Storage Processing</li>
                 </ul>
               </div>
               <Link href="/register" className="mt-8">
-                <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl">Contact Sales</Button>
+                <Button className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 rounded-2xl py-6 font-semibold">Contact Sales</Button>
               </Link>
             </div>
           </div>
@@ -300,18 +335,18 @@ export default function Home() {
       {/* FAQ Section */}
       <section id="faq" className="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 space-y-4">
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white">Frequently Asked Questions</h2>
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Frequently Asked Questions</h2>
         </div>
 
         <div className="space-y-4">
           {faqs.map((f, i) => (
-            <div key={i} className="rounded-2xl bg-zinc-900/60 border border-zinc-800 overflow-hidden">
+            <div key={i} className="rounded-2xl bg-zinc-900/60 border border-zinc-800 overflow-hidden backdrop-blur-xl">
               <button
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className="w-full p-6 text-left font-bold text-lg text-white flex items-center justify-between gap-4"
               >
                 <span>{f.q}</span>
-                <ChevronRight className={`h-5 w-5 text-indigo-400 transition-transform ${openFaq === i ? "rotate-90" : ""}`} />
+                <ChevronRight className={`h-5 w-5 text-indigo-400 transition-transform duration-200 ${openFaq === i ? "rotate-90" : ""}`} />
               </button>
               {openFaq === i && (
                 <div className="px-6 pb-6 text-sm text-zinc-400 leading-relaxed border-t border-zinc-800/60 pt-4">
@@ -324,13 +359,13 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-900 bg-zinc-950 py-12 text-center text-xs text-zinc-600">
+      <footer className="border-t border-zinc-900 bg-zinc-950 py-12 text-xs text-zinc-600">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <HeartHandshake className="h-5 w-5 text-indigo-500" />
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="h-5 w-5 text-indigo-500" />
             <span className="font-bold text-sm text-zinc-300">LifeSync AI Platform</span>
           </div>
-          <p>© {new Date().getFullYear()} LifeSync AI Inc. Production-Ready Platform.</p>
+          <p>© {new Date().getFullYear()} LifeSync AI Inc. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -2,11 +2,12 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class SourceChunk(BaseModel):
-    id: int
-    document_id: int
+    id: Optional[int] = 0
+    document_id: Optional[int] = 0
     name: str
     folder: Optional[str] = None
     page: Optional[str] = None
+
 
 class RAGResponse(BaseModel):
     answer: str = Field(description="The final answer written in Markdown format.")

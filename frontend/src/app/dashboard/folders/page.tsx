@@ -215,22 +215,9 @@ function FoldersContent() {
           if (targetFolderName) formData.append("folder_name", targetFolderName);
           if (expiryDate) formData.append("expiry_date", expiryDate);
 
-          let token = null;
-          if (typeof window !== "undefined") {
-            token = localStorage.getItem("accessToken");
-          }
+          const response = await apiClient.post("/api/v1/lifesync/documents/upload", formData);
 
-          const response = await fetch(`${API_URL}/api/v1/lifesync/documents/upload`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              ...(token ? { "Authorization": `Bearer ${token}` } : {})
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error("File upload failed");
-          }
+          // apiClient throws on error, so if we reach here it was successful
         } else {
           await apiClient.post('/api/v1/lifesync/documents', {
             name: docName.trim(),
@@ -305,13 +292,42 @@ function FoldersContent() {
           return f;
         }));
       } else {
+        // Optimistically remove from the list immediately, then refresh
+        setFolderDocs(prev => prev.filter(d => d.id !== docId));
         loadFolders();
         if (activeFolder) {
           loadFolderDocs(activeFolder.folder_id);
         }
       }
     } catch {
-      alert("Failed to delete document.");
+      setFeedback("Failed to delete document. Please try again.");
+      setTimeout(() => setFeedback(null), 5000);
+    }
+  };
+
+  const handleDeleteFolder = async (folderId: number, folderName: string) => {
+    if (!confirm(`Are you sure you want to delete the folder "${folderName}"?`)) return;
+    try {
+      if (!guestMode) {
+        await apiClient.delete(`/api/v1/lifesync/folders/${folderId}`);
+      }
+      setFeedback(`Folder '${folderName}' deleted successfully.`);
+      setTimeout(() => setFeedback(null), 4000);
+
+      setFolders((prev) => {
+        const updated = prev.filter((f) => f.folder_id !== folderId);
+        if (activeFolder?.folder_id === folderId) {
+          setActiveFolder(updated.length > 0 ? updated[0] : null);
+        }
+        return updated;
+      });
+
+      if (!guestMode) {
+        loadFolders();
+      }
+    } catch {
+      setFeedback(`Failed to delete folder '${folderName}'. Please try again.`);
+      setTimeout(() => setFeedback(null), 5000);
     }
   };
 
@@ -410,9 +426,21 @@ function FoldersContent() {
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <FileText className="h-5 w-5 text-indigo-400" /> {f.folder_name}
                 </h2>
-                <span className="text-xs font-mono font-bold text-zinc-300 bg-zinc-800 px-3 py-1 rounded-full border border-zinc-700">
-                  {f.doc_count} {f.doc_count === 1 ? 'file' : 'files'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-zinc-300 bg-zinc-800 px-3 py-1 rounded-full border border-zinc-700">
+                    {f.doc_count} {f.doc_count === 1 ? 'file' : 'files'}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFolder(f.folder_id, f.folder_name);
+                    }}
+                    className="text-zinc-500 hover:text-rose-400 p-1.5 hover:bg-rose-500/10 rounded-lg transition-all"
+                    title={`Delete folder ${f.folder_name}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="text-xs text-zinc-400 space-y-2 pt-2 border-t border-zinc-800/60">
@@ -442,7 +470,17 @@ function FoldersContent() {
               {activeFolder ? `${activeFolder.folder_name} Folder` : "Document Upload & Vault"}
             </h2>
           </div>
+          {activeFolder && (
+            <Button
+              onClick={() => handleDeleteFolder(activeFolder.folder_id, activeFolder.folder_name)}
+              className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-2xl px-4 py-2 text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm"
+              title={`Delete folder ${activeFolder.folder_name}`}
+            >
+              <Trash2 className="h-4 w-4 text-rose-400" /> Delete Folder
+            </Button>
+          )}
         </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Document Uploader with Folder Selection */}
@@ -554,32 +592,33 @@ function FoldersContent() {
               ) : (
                 <div className="space-y-3 overflow-y-auto max-h-[320px] pr-2">
                   {folderDocs.map((doc) => (
-                    <Link href={`/dashboard/document/${doc.id}`} key={doc.id} className="block">
-                      <div className="flex items-center justify-between gap-3 text-xs bg-zinc-900/80 p-3 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-zinc-200 truncate">{doc.name}</p>
-                          <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-500">
-                            <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 font-mono uppercase">{doc.file_type || "pdf"}</span>
-                            {doc.metadata?.expiry_date && (
-                              <span className="text-amber-400/90 font-medium flex items-center gap-1">
-                                <Clock className="h-3 w-3" /> Expires: {doc.metadata.expiry_date}
-                              </span>
-                            )}
-                            {doc.created_at && (
-                              <span className="text-zinc-600">Added: {new Date(doc.created_at).toLocaleDateString()}</span>
-                            )}
-                          </div>
+                    <div key={doc.id} className="flex items-center gap-2 text-xs bg-zinc-900/80 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-colors">
+                      <Link
+                        href={`/dashboard/document/${doc.id}`}
+                        className="flex-1 min-w-0 p-3 block"
+                      >
+                        <p className="font-semibold text-zinc-200 truncate">{doc.name}</p>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-500">
+                          <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 font-mono uppercase">{doc.file_type || "pdf"}</span>
+                          {doc.metadata?.expiry_date && (
+                            <span className="text-amber-400/90 font-medium flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> Expires: {doc.metadata.expiry_date}
+                            </span>
+                          )}
+                          {doc.created_at && (
+                            <span className="text-zinc-600">Added: {new Date(doc.created_at).toLocaleDateString()}</span>
+                          )}
                         </div>
+                      </Link>
 
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleDeleteDoc(doc.id); }}
-                          className="text-zinc-500 hover:text-rose-400 p-2 hover:bg-rose-500/10 rounded-lg transition-all flex-shrink-0"
-                          title="Delete Document"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </Link>
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteDoc(doc.id); }}
+                        className="text-zinc-500 hover:text-rose-400 p-2 mr-1 hover:bg-rose-500/10 rounded-lg transition-all flex-shrink-0"
+                        title="Delete Document"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}

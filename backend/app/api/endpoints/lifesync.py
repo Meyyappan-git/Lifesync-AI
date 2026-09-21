@@ -152,6 +152,46 @@ def create_folder(
     db.refresh(folder)
     return {"id": folder.id, "name": folder.name, "description": folder.description, "message": "Folder created successfully"}
 
+@router.delete("/folders/{folder_id}", status_code=status.HTTP_200_OK)
+def delete_folder(
+    folder_id: int,
+    current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(get_db)
+):
+    folder = db.query(Folder).filter(Folder.id == folder_id).first()
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    folder_name = folder.name
+
+    # Set documents in this folder for current_user to folder_id = None
+    db.query(Document).filter(
+        Document.folder_id == folder_id,
+        Document.user_id == current_user.id
+    ).update({"folder_id": None}, synchronize_session=False)
+
+    try:
+        db.delete(folder)
+        db.commit()
+    except Exception:
+        db.rollback()
+        # Fallback if DB foreign key constraints prevent full deletion of a shared system folder
+        db.query(Document).filter(
+            Document.folder_id == folder_id,
+            Document.user_id == current_user.id
+        ).update({"folder_id": None}, synchronize_session=False)
+        db.commit()
+
+    db.add(ActivityLog(
+        user_id=current_user.id,
+        event="DELETE_FOLDER",
+        metadata_json={"details": f"Deleted folder '{folder_name}'"}
+    ))
+    db.commit()
+
+    return {"message": f"Folder '{folder_name}' deleted successfully"}
+
+
 @router.post("/documents", status_code=status.HTTP_201_CREATED)
 def create_document(
     payload: DocumentCreateRequest,

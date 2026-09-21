@@ -51,12 +51,12 @@ def postprocess_response(response: RAGResponse, intent: str, retrieved_chunk_ids
         pass
         
     # Check forbidden markers
-    forbidden = ["[Document:", "---", "relevant document matches"]
+    forbidden = ["[Document:", "relevant document matches"]
     for f in forbidden:
         if f.lower() in response.answer.lower():
             logger.warning(f"Response contains forbidden marker: {f}")
-            # Try to strip it out
             response.answer = response.answer.replace(f, "")
+
             
     response.answer = mask_pii(response.answer)
     return response

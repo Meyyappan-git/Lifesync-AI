@@ -74,24 +74,7 @@ export default function NewReportPage() {
     formData.append("file", selectedFile);
 
     try {
-      // Custom fetch because apiClient wraps JSON content-type
-      const token = localStorage.getItem("accessToken");
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      
-      const response = await fetch(`${API_URL}/api/v1/health/analyze-file`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || "File analysis upload failed");
-      }
-
-      const report = await response.json();
+      const report = await apiClient.post<{id: number}>("/api/v1/health/analyze-file", formData);
       router.push(`/dashboard/report/${report.id}`);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred during file upload");

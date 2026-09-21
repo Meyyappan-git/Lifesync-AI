@@ -23,8 +23,9 @@ const mockDocs = {
 };
 
 jest.mock('@/lib/api-client', () => ({
-  apiClient: {r
+  apiClient: {
     get: jest.fn((url) => {
+
       if (url === '/api/v1/lifesync/folders') {
         return Promise.resolve(mockFolders);
       }

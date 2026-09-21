@@ -1,9 +1,9 @@
-version: "3.8"
+version: '3.8'
 
 services:
   db:
-    image: ankane/pgvector:latest
-    container_name: lifesync_db
+    image: pgvector/pgvector:pg16
+    container_name: lifesync-db
     environment:
       POSTGRES_USER: lifesync
       POSTGRES_PASSWORD: lifesyncpassword
@@ -11,42 +11,44 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lifesync -d lifesync_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build: ./backend
-    container_name: lifesync_backend
-    volumes:
-      - ./backend:/app
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lifesync-backend
+    environment:
+      POSTGRES_USER: lifesync
+      POSTGRES_PASSWORD: lifesyncpassword
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: lifesync_db
+      SECRET_KEY: "supersecretkey_please_change_in_production"
+      FRONTEND_URL: "http://localhost:3000"
+      EMAIL_BACKEND: "console"
     ports:
       - "8000:8000"
-    environment:
-      - POSTGRES_USER=lifesync
-      - POSTGRES_PASSWORD=lifesyncpassword
-      - POSTGRES_SERVER=db
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=lifesync_db
     depends_on:
-      - db
-    restart: unless-stopped
+      db:
+        condition: service_healthy
 
   frontend:
-    build: ./frontend
-    container_name: lifesync_frontend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lifesync-frontend
+    environment:
+      BACKEND_INTERNAL_URL: "http://backend:8000"
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - backend
-    # Run in dev mode for hot reloading during development
-    command: npm run dev
-    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  pgdata:
