@@ -47,26 +47,10 @@ def parse_metadata_from_text(raw_text: str) -> Dict[str, Any]:
 
     return metadata
 
-def classify_folder_for_doc(doc_name: str, raw_text: str, metadata: Dict[str, Any]) -> str:
+def classify_folder_for_doc(doc_name: str, raw_text: str, metadata: Dict[str, Any], available_folders: Optional[List[str]] = None) -> str:
     """
-    Classify a document into one of the 7 Life Folders:
-    Vehicle, Travel, Health, Education, Employment, Finance, Property
+    Classify a document into the most suitable Life Folder using multi-tier AI & scoring.
     """
-    text_lower = f"{doc_name} {raw_text}".lower()
+    from app.services.ocr_service import classify_document_folder
+    return classify_document_folder(doc_name, raw_text, metadata, available_folders)
 
-    if any(k in text_lower for k in ['driving licence', 'dl', 'rc book', 'vehicle', 'puc', 'road tax', 'service record', 'car', 'bike', 'motor']):
-        return "Vehicle"
-    if any(k in text_lower for k in ['passport', 'visa', 'flight', 'ticket', 'hotel', 'boarding pass', 'travel insurance']):
-        return "Travel"
-    if any(k in text_lower for k in ['medical', 'prescription', 'health', 'surgery', 'hospital', 'blood report', 'doctor', 'vaccination']):
-        return "Health"
-    if any(k in text_lower for k in ['degree', 'mark sheet', 'transcript', 'certificate', 'school', 'university', 'bonafide', 'tuition', 'scholarship']):
-        return "Education"
-    if any(k in text_lower for k in ['offer letter', 'salary', 'payslip', 'experience', 'employment', 'contract', 'resignation', 'hr']):
-        return "Employment"
-    if any(k in text_lower for k in ['pan card', 'bank statement', 'tax return', 'itr', 'loan', 'investment', 'demat', 'mutual fund', 'credit card']):
-        return "Finance"
-    if any(k in text_lower for k in ['sale deed', 'property tax', 'electricity bill', 'water bill', 'land', 'lease', 'rent agreement']):
-        return "Property"
-
-    return "Finance"  # Fallback default folder

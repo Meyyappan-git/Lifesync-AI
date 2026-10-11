@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+*.py[cod]
+*$py.class
+**/*.pyc
+
+# Environments & sensitive keys
+.env
+.env*.local
+.venv/
+venv/
+ENV/
+
+# SQLite & databases
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+backend/test.db
+backend/test_features.db
+
+# Storage / uploads / temp
+backend/app/storage/
+backend/storage/
+.pytest_cache/
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/.next/
+.next/
+dist/
+out/
+build/
+*.log

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiClient, API_URL } from "@/lib/api-client";
-import { FolderKanban, ArrowRight, Plus, PlusCircle, CheckCircle2, AlertCircle, Share2, GitBranch, FolderPlus, FileText, Upload, Trash2, Clock, Tag } from "lucide-react";
+import { FolderKanban, ArrowRight, Plus, PlusCircle, CheckCircle2, AlertCircle, Share2, GitBranch, FolderPlus, FileText, Upload, Trash2, Clock, Tag, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FolderStat {
@@ -23,12 +23,29 @@ interface FolderDocument {
   metadata: Record<string, string>;
 }
 
+interface DocumentSearchResult {
+  id: number;
+  name: string;
+  file_type?: string | null;
+  folder_id?: number | null;
+  folder_name?: string | null;
+  created_at?: string | null;
+  metadata: Record<string, string>;
+  matched_field: string;
+  snippet?: string | null;
+}
+
 function FoldersContent() {
   const [folders, setFolders] = useState<FolderStat[]>([]);
   const [activeFolder, setActiveFolder] = useState<FolderStat | null>(null);
   const [folderDocs, setFolderDocs] = useState<FolderDocument[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [docsError, setDocsError] = useState<string | null>(null);
+
+  // Global Document Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<DocumentSearchResult[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Custom Folder Creation state
   const [showCreateFolder, setShowCreateFolder] = useState(false);
@@ -45,6 +62,7 @@ function FoldersContent() {
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+
 
   const searchParams = useSearchParams();
   const guestMode = searchParams.get("guest") === "1";
@@ -202,29 +220,31 @@ function FoldersContent() {
       targetFolderName = customFolderName.trim();
     } else if (selectedFolderId !== "auto") {
       targetFolderId = Number(selectedFolderId);
-    } else if (activeFolder) {
-      targetFolderId = activeFolder.folder_id;
     }
+    // When selectedFolderId === "auto", leave targetFolderId and targetFolderName undefined
+    // so the AI classification engine accurately reads the file and selects the most suitable folder!
 
     try {
+      let resolvedFolderName = "";
       if (!guestMode) {
         if (file) {
           const formData = new FormData();
           formData.append("file", file);
+          formData.append("name", docName.trim());
           if (targetFolderId) formData.append("folder_id", String(targetFolderId));
           if (targetFolderName) formData.append("folder_name", targetFolderName);
           if (expiryDate) formData.append("expiry_date", expiryDate);
 
-          const response = await apiClient.post("/api/v1/lifesync/documents/upload", formData);
-
-          // apiClient throws on error, so if we reach here it was successful
+          const response = await apiClient.post<{ folder_name?: string; message?: string }>("/api/v1/lifesync/documents/upload", formData);
+          resolvedFolderName = response.folder_name || "";
         } else {
-          await apiClient.post('/api/v1/lifesync/documents', {
+          const response = await apiClient.post<{ folder_name?: string; message?: string }>('/api/v1/lifesync/documents', {
             name: docName.trim(),
             folder_id: targetFolderId,
             folder_name: targetFolderName,
             expiry_date: expiryDate || undefined
           });
+          resolvedFolderName = response.folder_name || "";
         }
       } else {
         // Mock add for Guest Mode
@@ -244,8 +264,8 @@ function FoldersContent() {
         }));
       }
 
-      // After successful upload (both guest and real), refresh folder documents
-      setFeedback(`Document '${docName}' uploaded successfully.`);
+      // After successful upload, provide clear feedback showing the classified folder
+      setFeedback(`Document '${docName}' analyzed and filed in folder: '${resolvedFolderName || 'General'}'`);
       setDocName("");
       setExpiryDate("");
       setCustomFolderName("");
@@ -331,6 +351,68 @@ function FoldersContent() {
     }
   };
 
+  const handleSearch = async (queryText: string) => {
+    setSearchQuery(queryText);
+    const trimmed = queryText.trim();
+    if (!trimmed) {
+      setSearchResults(null);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      if (guestMode) {
+        const q = trimmed.toLowerCase();
+        const mock: DocumentSearchResult[] = [
+          {
+            id: 101,
+            name: "Passport_Scan_Main.pdf",
+            file_type: "pdf",
+            folder_name: "Personal Passports",
+            created_at: new Date().toISOString(),
+            metadata: { expiry_date: "2031-05-12" },
+            matched_field: "name",
+            snippet: "Match in filename: Passport_Scan_Main.pdf"
+          },
+          {
+            id: 102,
+            name: "Entry_Visa_NYC.pdf",
+            file_type: "pdf",
+            folder_name: "Personal Passports",
+            created_at: new Date().toISOString(),
+            metadata: { expiry_date: "2027-01-01" },
+            matched_field: "name",
+            snippet: "Match in filename: Entry_Visa_NYC.pdf"
+          },
+          {
+            id: 103,
+            name: "Annual_Health_Insurance_Policy.pdf",
+            file_type: "pdf",
+            folder_name: "Medical Records",
+            created_at: new Date().toISOString(),
+            metadata: { expiry_date: "2026-12-31" },
+            matched_field: "name",
+            snippet: "Match in filename: Annual_Health_Insurance_Policy.pdf"
+          }
+        ].filter(d => d.name.toLowerCase().includes(q) || (d.folder_name && d.folder_name.toLowerCase().includes(q)));
+        setSearchResults(mock);
+      } else {
+        const res = await apiClient.get<{ query: string; total: number; results: DocumentSearchResult[] }>(
+          `/api/v1/lifesync/documents/search?q=${encodeURIComponent(trimmed)}`
+        );
+        setSearchResults(res.results || []);
+      }
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults(null);
+  };
+
   return (
     <div className="space-y-8 font-sans">
       {/* Auth error banner */}
@@ -360,6 +442,105 @@ function FoldersContent() {
           <FolderPlus className="h-5 w-5" /> + New Custom Folder
         </Button>
       </div>
+
+      {/* Global Document Search Bar */}
+      <div className="relative rounded-2xl bg-zinc-900/80 border border-zinc-800 p-2 shadow-lg">
+        <div className="flex items-center gap-3 px-3">
+          <Search className="w-5 h-5 text-indigo-400 shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search across all documents, filenames, OCR text, or metadata tags..."
+            className="w-full bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none py-2"
+          />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="p-1 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white"
+              title="Clear search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Search Results Panel */}
+      {searchResults !== null && (
+        <div className="space-y-4 rounded-3xl border border-indigo-500/30 bg-zinc-900/90 p-6 shadow-2xl">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-indigo-400" />
+              <h2 className="text-base font-bold text-white">
+                Search Results ({searchResults.length} match{searchResults.length === 1 ? '' : 'es'}) for "{searchQuery}"
+              </h2>
+            </div>
+            <button
+              onClick={clearSearch}
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
+            >
+              Exit Search & View Folders
+            </button>
+          </div>
+
+          {searchResults.length === 0 ? (
+            <div className="py-8 text-center text-sm text-zinc-400">
+              No documents matched your query "{searchQuery}". Try different keywords or folder tags.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {searchResults.map((doc) => (
+                <div 
+                  key={doc.id}
+                  className="p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800 hover:border-indigo-500/50 transition-all flex flex-col justify-between gap-3"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="w-4 h-4 text-indigo-400 shrink-0" />
+                        <Link 
+                          href={`/dashboard/document/${doc.id}`}
+                          className="text-sm font-bold text-white hover:text-indigo-400 truncate"
+                        >
+                          {doc.name}
+                        </Link>
+                      </div>
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700 shrink-0">
+                        {doc.matched_field}
+                      </span>
+                    </div>
+
+                    {doc.snippet && (
+                      <p className="text-xs text-zinc-400 mt-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-800/80 line-clamp-2 font-mono">
+                        {doc.snippet}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-[11px] text-zinc-500">Folder:</span>
+                      <span className="text-xs font-semibold text-indigo-300">
+                        {doc.folder_name || "General"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+                    <span className="text-[11px] text-zinc-500">
+                      {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : ""}
+                    </span>
+                    <Link href={`/dashboard/document/${doc.id}`}>
+                      <Button variant="ghost" className="h-7 text-xs px-2 text-indigo-400 hover:text-white">
+                        Open Document →
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Create Custom Folder Inline Form / Modal */}
       {showCreateFolder && (

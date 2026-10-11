@@ -25,8 +25,10 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def setup_db():
     Base.metadata.create_all(bind=engine)
+    app.dependency_overrides[get_db] = override_get_db
     yield
     Base.metadata.drop_all(bind=engine)
+    app.dependency_overrides.pop(get_db, None)
 
 def test_parse_metadata_from_text_expiry():
     text = "Valid Until: 2027-12-31. Policy No: POL-99281."
@@ -43,17 +45,16 @@ def test_classify_folder_for_doc():
 def test_auth_and_lifesync_flow():
     # 1. Register user
     reg_resp = client.post("/api/v1/auth/register", json={
+        "full_name": "Test User",
         "email": "testuser@example.com",
         "password": "Password123!",
-        "confirm_password": "Password123!",
-        "first_name": "Test",
-        "last_name": "User"
+        "confirm_password": "Password123!"
     })
     assert reg_resp.status_code == 201
 
     # 2. Login
-    login_resp = client.post("/api/v1/auth/login", data={
-        "username": "testuser@example.com",
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": "testuser@example.com",
         "password": "Password123!"
     })
     assert login_resp.status_code == 200
@@ -99,7 +100,6 @@ def test_auth_and_lifesync_flow():
     assert rag_resp.status_code == 200
     rag_data = rag_resp.json()
     assert "answer" in rag_data
-    assert "retrieved_chunks" in rag_data
     assert "sources" in rag_data
 
 

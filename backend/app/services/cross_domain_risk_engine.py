@@ -149,6 +149,17 @@ def evaluate_cross_domain_risks(db: Session, user_id: int) -> List[Dict[str, Any
                 "deadline": exp_dt.strftime("%Y-%m-%d")
             })
 
+    # Check resolved risk alerts in DB
+    resolved_titles = set()
+    try:
+        resolved_records = db.query(RiskAlert).filter(RiskAlert.user_id == user_id, RiskAlert.is_resolved == True).all()
+        resolved_titles = {r.title for r in resolved_records}
+    except Exception:
+        pass
+
+    for r in detected_risks:
+        r["is_resolved"] = r["title"] in resolved_titles
+
     return detected_risks
 
 def calculate_life_health_score(db: Session, user_id: int) -> Dict[str, Any]:
@@ -162,9 +173,10 @@ def calculate_life_health_score(db: Session, user_id: int) -> Dict[str, Any]:
     avg_completion = total_completion // len(folder_stats) if folder_stats else 0
     
     # Calculate risks
-    active_risks = evaluate_cross_domain_risks(db, user_id)
-    critical_count = sum(1 for r in active_risks if r['risk_level'] == 'Critical')
-    high_count = sum(1 for r in active_risks if r['risk_level'] == 'High')
+    all_risks = evaluate_cross_domain_risks(db, user_id)
+    unresolved_risks = [r for r in all_risks if not r.get("is_resolved")]
+    critical_count = sum(1 for r in unresolved_risks if r['risk_level'] == 'Critical')
+    high_count = sum(1 for r in unresolved_risks if r['risk_level'] == 'High')
     
     # Penalty calculation
     penalty = (critical_count * 20) + (high_count * 10)
@@ -174,8 +186,8 @@ def calculate_life_health_score(db: Session, user_id: int) -> Dict[str, Any]:
         "life_health_score": health_score,
         "folder_completion_avg": avg_completion,
         "folder_stats": folder_stats,
-        "active_risks_count": len(active_risks),
+        "active_risks_count": len(unresolved_risks),
         "critical_risks": critical_count,
         "high_risks": high_count,
-        "risks": active_risks
+        "risks": all_risks
     }

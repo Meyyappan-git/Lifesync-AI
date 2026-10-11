@@ -3,7 +3,8 @@
 import { Suspense, useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
-import { Bot, Send, Sparkles, User, FileText, CheckCircle2, RefreshCw, Layers, AlertCircle } from "lucide-react";
+import { Bot, Send, Sparkles, User, FileText, CheckCircle2, RefreshCw, Layers, AlertCircle, Trash2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 
@@ -46,6 +47,37 @@ function AssistantContent() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (!guestMode) {
+      apiClient.get<Array<{ id: number; role: string; content: string }>>("/api/v1/lifesync/assistant/history")
+        .then((history) => {
+          if (history && history.length > 0) {
+            setMessages(history.map(m => ({
+              sender: m.role === "assistant" ? "ai" : "user",
+              text: m.content
+            })));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [guestMode]);
+
+  const handleClearHistory = async () => {
+    try {
+      if (!guestMode) {
+        await apiClient.delete("/api/v1/lifesync/assistant/history");
+      }
+      setMessages([
+        {
+          sender: "ai",
+          text: "Hello! I am your LifeSync AI Assistant. Conversation history has been cleared. What can I help you find today?"
+        }
+      ]);
+    } catch {
+      // ignore
+    }
+  };
 
   // In a real app we'd fetch these from the backend based on user's actual stored data
   const quickPrompts = [
@@ -128,7 +160,20 @@ function AssistantContent() {
             <p className="text-xs text-zinc-400">Powered by Retrieval Augmented Generation (RAG)</p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleClearHistory}
+            variant="outline"
+            className="border-zinc-800 bg-zinc-900 hover:bg-rose-950/40 hover:text-rose-400 hover:border-rose-500/30 text-zinc-400 rounded-2xl px-3.5 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+            title="Clear Chat Conversation History"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Clear History</span>
+          </Button>
+        </div>
       </div>
+
 
       {/* Quick Prompts */}
       <div className="flex-none flex flex-wrap gap-2">

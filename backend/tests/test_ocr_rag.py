@@ -46,3 +46,61 @@ def test_rag_tf_and_cosine():
 
     sim = cosine_similarity(tf1, tf2)
     assert sim > 0.1
+
+
+def test_classifier_avoids_substring_collisions():
+    # 1. 'dl' in 'idle' or 'download' or 'guideline' should NOT classify as Vehicle
+    text = "Guidelines for team work and idle time reduction during software project sprints."
+    meta = parse_structured_metadata(text, "workplace_guidelines.txt")
+    folder = classify_document_folder("workplace_guidelines.txt", text, meta)
+    assert folder != "Vehicle"
+    assert folder in ["Employment", "Education", "General", "Finance"]
+
+    # 2. 'car' in 'care' (healthcare) should classify as Health, NOT Vehicle
+    care_text = "Primary health care patient checkup at St Jude Hospital clinic. Doctor prescription dosage."
+    care_meta = parse_structured_metadata(care_text, "health_care_plan.txt")
+    care_folder = classify_document_folder("health_care_plan.txt", care_text, care_meta)
+    assert care_folder == "Health"
+
+    # 3. 'car' in 'credit card' or 'debit card' should classify as Finance, NOT Vehicle
+    card_text = "Monthly credit card account statement for Bank of India. Transaction summary and balance."
+    card_meta = parse_structured_metadata(card_text, "card_statement.txt")
+    card_folder = classify_document_folder("card_statement.txt", card_text, card_meta)
+    assert card_folder == "Finance"
+
+
+def test_classifier_resolves_custom_user_folders_with_synonyms():
+    # User has custom folders with human names
+    user_folders = [
+        "Medical Records",
+        "Passports & Visas",
+        "Car Docs & RC",
+        "Tax Invoices",
+        "Work Contracts",
+        "College Degrees"
+    ]
+
+    # Health -> Medical Records
+    health_text = "Hospital discharge summary. Patient diagnosis report and prescription medicine."
+    h_meta = parse_structured_metadata(health_text, "hospital_bill.pdf")
+    h_folder = classify_document_folder("hospital_bill.pdf", health_text, h_meta, user_folders)
+    assert h_folder == "Medical Records"
+
+    # Travel -> Passports & Visas
+    travel_text = "Flight ticket booking confirmation PNR AB9812. Terminal 3 boarding pass."
+    t_meta = parse_structured_metadata(travel_text, "flight_ticket.pdf")
+    t_folder = classify_document_folder("flight_ticket.pdf", travel_text, t_meta, user_folders)
+    assert t_folder == "Passports & Visas"
+
+    # Vehicle -> Car Docs & RC
+    veh_text = "Vehicle registration certificate RC book. Motor driving license copy."
+    v_meta = parse_structured_metadata(veh_text, "vehicle_rc.pdf")
+    v_folder = classify_document_folder("vehicle_rc.pdf", veh_text, v_meta, user_folders)
+    assert v_folder == "Car Docs & RC"
+
+    # Finance -> Tax Invoices
+    fin_text = "Income tax return ITR filing acknowledgement and bank statement."
+    f_meta = parse_structured_metadata(fin_text, "itr_2025.pdf")
+    f_folder = classify_document_folder("itr_2025.pdf", fin_text, f_meta, user_folders)
+    assert f_folder == "Tax Invoices"
+

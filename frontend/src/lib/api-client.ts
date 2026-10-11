@@ -33,7 +33,14 @@ export const apiClient = {
     const formattedBody = isFormData ? body : JSON.stringify(body);
     return fetchWithAuth<T>(formatEndpoint(endpoint), { ...options, method: "PUT", body: formattedBody });
   },
+
+  patch: <T>(endpoint: string, body: any, options?: RequestInit) => {
+    const isFormData = body instanceof FormData;
+    const formattedBody = isFormData ? body : JSON.stringify(body);
+    return fetchWithAuth<T>(formatEndpoint(endpoint), { ...options, method: "PATCH", body: formattedBody });
+  },
     
   delete: <T>(endpoint: string, options?: RequestInit) => 
     fetchWithAuth<T>(formatEndpoint(endpoint), { ...options, method: "DELETE" }),
 };
+

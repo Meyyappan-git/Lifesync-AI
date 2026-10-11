@@ -101,3 +101,17 @@ def get_report(
     if not report:
         raise HTTPException(status_code=404, detail="Health report not found")
     return report
+
+@router.delete("/report/{id}", status_code=status.HTTP_200_OK)
+def delete_report(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    report = db.query(HealthReport).filter(HealthReport.id == id, HealthReport.user_id == current_user.id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Health report not found")
+    db.delete(report)
+    db.commit()
+    return {"message": "Health report deleted successfully"}
+

@@ -9,8 +9,9 @@ import {
   Activity, FileText, ShieldAlert, Sparkles, FolderKanban, 
   ArrowRight, Upload, AlertTriangle, CheckCircle2, Bot, 
   Clock, Calendar, Zap, Layers, Lock, ShieldCheck, ChevronRight,
-  TrendingUp, FileCheck, AlertCircle, Plus
+  TrendingUp, FileCheck, AlertCircle, Plus, Bell, Send, Trash2
 } from "lucide-react";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -40,9 +41,10 @@ interface DashboardData {
   risks?: RiskItem[];
   upcoming_expiries?: ExpiryItem[];
   documents?: Array<{ id: number; name: string; file_type: string | null; folder_name: string; created_at: string | null }>;
-  reminders?: Array<{ id: number; title: string; message: string | null; trigger_time: string | null }>;
+  reminders?: Array<{ id: number; title: string; message: string | null; trigger_time: string | null; is_sent?: boolean }>;
   activity?: Array<{ id: number; action: string; details: string | null; created_at: string | null }>;
 }
+
 
 function DashboardContent() {
   const searchParams = useSearchParams();
@@ -114,6 +116,84 @@ function DashboardContent() {
   const [uploadCustomFolder, setUploadCustomFolder] = useState("");
   const [uploadExpiryDate, setUploadExpiryDate] = useState("");
 
+  // Scheduled Reminders States & Handlers
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderTitle, setReminderTitle] = useState("");
+  const [reminderMessage, setReminderMessage] = useState("");
+  const [reminderTime, setReminderTime] = useState("");
+  const [creatingReminder, setCreatingReminder] = useState(false);
+  const [reminderFeedback, setReminderFeedback] = useState<string | null>(null);
+
+  const handleCreateReminder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reminderTitle.trim() || !reminderTime) return;
+    setCreatingReminder(true);
+    try {
+      if (!guestMode && user) {
+        await apiClient.post("/api/v1/lifesync/reminders", {
+          title: reminderTitle.trim(),
+          message: reminderMessage.trim() || undefined,
+          trigger_time: new Date(reminderTime).toISOString(),
+        });
+        fetchDashboard();
+      } else {
+        const newRem = {
+          id: Date.now(),
+          title: reminderTitle.trim(),
+          message: reminderMessage.trim() || null,
+          trigger_time: reminderTime,
+          is_sent: false,
+        };
+        setData((prev) => prev ? { ...prev, reminders: [newRem, ...(prev.reminders || [])] } : null);
+      }
+      setShowReminderModal(false);
+      setReminderTitle("");
+      setReminderMessage("");
+      setReminderTime("");
+      setReminderFeedback("Reminder scheduled successfully!");
+      setTimeout(() => setReminderFeedback(null), 3500);
+    } catch {
+      setReminderFeedback("Failed to schedule reminder.");
+    } finally {
+      setCreatingReminder(false);
+    }
+  };
+
+  const handleSendReminderNow = async (id: number) => {
+    try {
+      if (!guestMode && user) {
+        await apiClient.post(`/api/v1/lifesync/reminders/${id}/send-now`, {});
+        fetchDashboard();
+      } else {
+        setData((prev) => prev ? {
+          ...prev,
+          reminders: (prev.reminders || []).map((r) => r.id === id ? { ...r, is_sent: true } : r)
+        } : null);
+      }
+      setReminderFeedback("Reminder alert email dispatched!");
+      setTimeout(() => setReminderFeedback(null), 3500);
+    } catch {
+      setReminderFeedback("Failed to send reminder email.");
+    }
+  };
+
+  const handleDeleteReminder = async (id: number) => {
+    try {
+      if (!guestMode && user) {
+        await apiClient.delete(`/api/v1/lifesync/reminders/${id}`);
+        fetchDashboard();
+      } else {
+        setData((prev) => prev ? {
+          ...prev,
+          reminders: (prev.reminders || []).filter((r) => r.id !== id)
+        } : null);
+      }
+    } catch {
+      setReminderFeedback("Failed to delete reminder.");
+    }
+  };
+
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -139,26 +219,31 @@ function DashboardContent() {
     }
 
     try {
+      let assignedFolder = "";
       if (!guestMode && user) {
         if (uploadFile) {
           const formData = new FormData();
           formData.append("file", uploadFile);
+          formData.append("name", uploadDocName.trim());
           if (targetFolderId) formData.append("folder_id", String(targetFolderId));
           if (targetFolderName) formData.append("folder_name", targetFolderName);
           if (uploadExpiryDate) formData.append("expiry_date", uploadExpiryDate);
 
-          await apiClient.post("/api/v1/lifesync/documents/upload", formData);
+          const res = await apiClient.post<{ folder_name?: string; message?: string }>("/api/v1/lifesync/documents/upload", formData);
+          assignedFolder = res.folder_name || "";
         } else {
-          await apiClient.post("/api/v1/lifesync/documents", {
+          const res = await apiClient.post<{ folder_name?: string; message?: string }>("/api/v1/lifesync/documents", {
             name: uploadDocName.trim(),
             folder_id: targetFolderId,
             folder_name: targetFolderName,
             expiry_date: uploadExpiryDate || undefined
           });
+          assignedFolder = res.folder_name || "";
         }
         fetchDashboard();
       } else {
         const folderName = targetFolderName || (data?.folder_stats?.find(f => f.folder_id === targetFolderId)?.folder_name || "General");
+        assignedFolder = folderName;
         setData(prev => ({
           ...prev,
           documents: [
@@ -168,7 +253,7 @@ function DashboardContent() {
         }));
       }
 
-      setUploadFeedback(`Document '${uploadDocName}' uploaded & indexed successfully!`);
+      setUploadFeedback(`Document '${uploadDocName}' successfully analyzed & filed in folder: '${assignedFolder || 'General'}'`);
       setUploadDocName("");
       setUploadExpiryDate("");
       setUploadCustomFolder("");
@@ -613,8 +698,185 @@ function DashboardContent() {
           ))}
         </div>
       </div>
+
+      {/* ── SCHEDULED REMINDERS & ALERTS SECTION ───────────────────────── */}
+      <div className="rounded-3xl border border-zinc-800/80 bg-zinc-900/60 p-6 sm:p-8 space-y-6 backdrop-blur-xl shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-indigo-500/10 border border-indigo-500/20 p-2.5 text-indigo-400">
+              <Bell className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-white">Scheduled Reminders & Due Alerts</h2>
+              <p className="text-xs text-zinc-400">Proactive notifications dispatched before document and passport expirations</p>
+            </div>
+          </div>
+          <Button
+            onClick={() => setShowReminderModal(true)}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl px-4 py-2 text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 self-start sm:self-auto"
+          >
+            <Plus className="h-4 w-4" /> New Reminder
+          </Button>
+        </div>
+
+        {reminderFeedback && (
+          <div className="p-3 rounded-xl border border-indigo-500/30 bg-indigo-950/40 text-indigo-300 text-xs flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-indigo-400" />
+            <span>{reminderFeedback}</span>
+          </div>
+        )}
+
+        {(!data?.reminders || data.reminders.length === 0) ? (
+          <div className="p-8 text-center border border-dashed border-zinc-800 rounded-2xl space-y-3">
+            <Clock className="h-8 w-8 text-zinc-600 mx-auto" />
+            <p className="text-sm font-semibold text-white">No Scheduled Reminders</p>
+            <p className="text-xs text-zinc-500">Create scheduled reminders to receive automated email alerts before renewals.</p>
+            <Button
+              onClick={() => setShowReminderModal(true)}
+              variant="outline"
+              className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 rounded-xl text-xs font-semibold"
+            >
+              + Create First Reminder
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.reminders.map((r) => {
+              const triggerDate = r.trigger_time ? new Date(r.trigger_time) : null;
+              const formattedDate = triggerDate ? triggerDate.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "Unscheduled";
+              const isPast = triggerDate ? triggerDate.getTime() < Date.now() : false;
+
+              return (
+                <div key={r.id} className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800 flex flex-col justify-between space-y-4 shadow-lg group hover:border-zinc-700 transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase border ${
+                        r.is_sent
+                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                          : isPast
+                          ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                          : "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"
+                      }`}>
+                        {r.is_sent ? "Dispatched" : isPast ? "Due" : "Scheduled"}
+                      </span>
+
+                      <button
+                        onClick={() => handleDeleteReminder(r.id)}
+                        className="text-zinc-500 hover:text-rose-400 p-1 rounded-lg transition-colors"
+                        title="Delete Reminder"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
+                      {r.title}
+                    </h3>
+                    {r.message && (
+                      <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                        {r.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-zinc-900 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
+                      <Clock className="h-3 w-3 text-zinc-500" />
+                      <span>{formattedDate}</span>
+                    </div>
+
+                    <Button
+                      onClick={() => handleSendReminderNow(r.id)}
+                      variant="ghost"
+                      className="h-7 text-[11px] text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 rounded-lg px-2 flex items-center gap-1"
+                      title="Send Email Alert Now"
+                    >
+                      <Send className="h-3 w-3" />
+                      <span>Alert Now</span>
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── CREATE REMINDER MODAL ────────────────────────────────────────── */}
+      {showReminderModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-6 sm:p-8 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Bell className="h-5 w-5 text-indigo-400" /> Schedule Reminder
+              </h3>
+              <button
+                onClick={() => setShowReminderModal(false)}
+                className="text-zinc-500 hover:text-zinc-300 text-sm font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateReminder} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Reminder Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Renew International Passport"
+                  value={reminderTitle}
+                  onChange={(e) => setReminderTitle(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Message (Optional)</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g., Check Passport Seva appointment dates online"
+                  value={reminderMessage}
+                  onChange={(e) => setReminderMessage(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Trigger Date & Time</label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={reminderTime}
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 [color-scheme:dark]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowReminderModal(false)}
+                  className="text-xs text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={creatingReminder}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-5 py-2 text-xs font-bold shadow-lg shadow-indigo-600/20"
+                >
+                  {creatingReminder ? "Scheduling..." : "Save Reminder"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
+
 }
 
 export default function DashboardPage() {

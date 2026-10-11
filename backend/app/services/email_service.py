@@ -113,3 +113,28 @@ class EmailService:
         </html>
         """
         cls.send_email(to_email, subject, html)
+
+    @classmethod
+    def send_reminder_email(cls, to_email: str, title: str, message: str = "", trigger_time_str: str = "") -> None:
+        subject = f"⏰ LifeSync Reminder: {title}"
+        dashboard_url = f"{settings.FRONTEND_URL}/dashboard"
+        html = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; background-color: #09090b; color: #f4f4f5; padding: 24px;">
+                <div style="max-width: 500px; margin: 0 auto; background-color: #18181b; padding: 32px; border-radius: 16px; border: 1px solid #27272a;">
+                    <div style="display: inline-block; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; color: #60a5fa; font-size: 12px; font-weight: bold; margin-bottom: 12px;">
+                        LIFESYNC SCHEDULED ALERT
+                    </div>
+                    <h2 style="color: #ffffff; margin-top: 0;">{title}</h2>
+                    <p style="color: #e4e4e7; font-size: 15px; line-height: 1.5;">{message or 'You have a scheduled reminder ready for review.'}</p>
+                    {f'<p style="color: #71717a; font-size: 13px;">Scheduled time: {trigger_time_str}</p>' if trigger_time_str else ''}
+                    <div style="margin: 28px 0; text-align: center;">
+                        <a href="{dashboard_url}" style="background-color: #3b82f6; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Open LifeSync Dashboard</a>
+                    </div>
+                    <p style="color: #71717a; font-size: 12px; text-align: center;">This is an automated proactive notification from your LifeSync AI operating system.</p>
+                </div>
+            </body>
+        </html>
+        """
+        cls.send_email(to_email, subject, html)
+

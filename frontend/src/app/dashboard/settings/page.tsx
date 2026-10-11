@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { changePasswordApi, updateMeApi } from "@/lib/api/auth";
+import { 
+  changePasswordApi, 
+  updateMeApi, 
+  getMySessionsApi, 
+  revokeMySessionApi, 
+  getMyActivityApi 
+} from "@/lib/api/auth";
+import { AuthSession, ActivityLog } from "@/types/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, ChangePasswordInput } from "@/lib/validation/auth";
@@ -12,14 +19,17 @@ import {
   Lock, 
   Mail, 
   ShieldCheck, 
-  Activity, 
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Laptop,
+  LogOut,
+  Clock,
+  Key
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const { user, refetchUser } = useAuth();
+  const { user, refetchUser, logoutAll } = useAuth();
   
   // Profile Update States
   const [fullName, setFullName] = useState(user?.full_name || "");
@@ -28,6 +38,11 @@ export default function SettingsPage() {
 
   // Password Update States
   const [passwordMsg, setPasswordMsg] = useState<{ type: "success" | "error", text: string } | null>(null);
+
+  // Sessions and Security Activity States
+  const [sessions, setSessions] = useState<AuthSession[]>([]);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
 
   const {
     register: registerPassword,
@@ -41,6 +56,28 @@ export default function SettingsPage() {
       new_password: "",
     },
   });
+
+  const fetchSecurityData = async () => {
+    try {
+      const [sessData, actData] = await Promise.all([
+        getMySessionsApi(), 
+        getMyActivityApi(1, 10)
+      ]);
+      setSessions(sessData);
+      setActivities(actData.items);
+    } catch {
+      // Ignored if unauthenticated or error
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || "");
+      fetchSecurityData();
+    }
+  }, [user]);
 
   const onUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,8 +102,24 @@ export default function SettingsPage() {
       const res = await changePasswordApi(data);
       setPasswordMsg({ type: "success", text: res.message || "Password changed successfully." });
       resetPasswordForm();
+      fetchSecurityData();
     } catch (err: any) {
       setPasswordMsg({ type: "error", text: err.message || "Failed to change password." });
+    }
+  };
+
+  const handleRevokeSession = async (sessionId: string) => {
+    try {
+      await revokeMySessionApi(sessionId);
+      fetchSecurityData();
+    } catch {
+      // Ignored
+    }
+  };
+
+  const handleSignOutEverywhere = async () => {
+    if (confirm("Are you sure you want to sign out from all devices?")) {
+      await logoutAll();
     }
   };
 
@@ -79,10 +132,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 font-sans max-w-4xl">
+    <div className="space-y-8 font-sans max-w-5xl mx-auto pb-12">
       <div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Account Settings</h1>
-        <p className="mt-2 text-sm text-zinc-400">Manage your profile details and security credentials.</p>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">Account & Security Hub</h1>
+        <p className="mt-2 text-sm text-zinc-400">Manage your profile, credentials, active device sessions, and audit trail.</p>
       </div>
 
       <div className="grid gap-8">
@@ -97,7 +150,7 @@ export default function SettingsPage() {
           <form onSubmit={onUpdateProfile} className="space-y-5">
             {profileMsg && (
               <div className={`p-4 rounded-xl border flex items-center gap-3 text-sm ${profileMsg.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-rose-500/10 border-rose-500/30 text-rose-400"}`}>
-                {profileMsg.type === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                {profileMsg.type === "success" ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
                 <span>{profileMsg.text}</span>
               </div>
             )}
@@ -194,6 +247,107 @@ export default function SettingsPage() {
           <div className="mt-4 p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 text-xs text-zinc-500">
             Note: Changing your password will automatically sign out all your other active sessions across devices.
           </div>
+        </div>
+
+        {/* Active Sessions Card */}
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/80 p-8 shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+            <div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Laptop className="h-5 w-5 text-indigo-400" /> Active Login Sessions
+              </h2>
+              <p className="text-xs text-zinc-400 mt-1">Devices currently authenticated to your account.</p>
+            </div>
+
+            <Button
+              type="button"
+              onClick={handleSignOutEverywhere}
+              variant="outline"
+              className="rounded-xl border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" /> Sign out all other devices
+            </Button>
+          </div>
+
+          {loadingSessions ? (
+            <div className="py-8 text-center text-zinc-500">
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-indigo-500" />
+            </div>
+          ) : sessions.length === 0 ? (
+            <p className="text-sm text-zinc-500">No other active sessions detected.</p>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-sm"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-white truncate max-w-xs">
+                        {s.user_agent || "Web Browser Session"}
+                      </span>
+                      {s.is_current && (
+                        <span className="rounded-full bg-indigo-500/10 text-indigo-400 px-2 py-0.5 text-xs font-medium border border-indigo-500/20">
+                          Current Device
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      IP: {s.ip || "Localhost / Protected"} • Last active: {new Date(s.last_used_at).toLocaleString()}
+                    </p>
+                  </div>
+
+                  {!s.is_current && (
+                    <Button
+                      type="button"
+                      onClick={() => handleRevokeSession(s.id)}
+                      variant="ghost"
+                      className="text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl"
+                    >
+                      Revoke
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Security & Audit Activity Trail Card */}
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/80 p-8 shadow-xl space-y-6">
+          <div className="flex items-center gap-3 border-b border-zinc-800 pb-4">
+            <Clock className="h-6 w-6 text-emerald-400" />
+            <div>
+              <h2 className="text-xl font-bold text-white">Security & Audit Activity Trail</h2>
+              <p className="text-xs text-zinc-400 mt-0.5">Chronological record of recent logins, document uploads, and security events.</p>
+            </div>
+          </div>
+
+          {activities.length === 0 ? (
+            <p className="text-sm text-zinc-500">No security events logged yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-zinc-400">
+                <thead className="border-b border-zinc-800 text-xs font-semibold uppercase text-zinc-500">
+                  <tr>
+                    <th className="py-3 px-4">Event</th>
+                    <th className="py-3 px-4">IP Address</th>
+                    <th className="py-3 px-4">Date & Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/60 font-mono text-xs">
+                  {activities.map((act) => (
+                    <tr key={act.id} className="hover:bg-zinc-950/50">
+                      <td className="py-3.5 px-4 font-semibold text-zinc-200 uppercase">{act.event}</td>
+                      <td className="py-3.5 px-4">{act.ip || "Internal"}</td>
+                      <td className="py-3.5 px-4">{new Date(act.created_at).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
       </div>

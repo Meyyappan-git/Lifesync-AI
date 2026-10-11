@@ -28,11 +28,11 @@ function RiskEngineContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("ALL");
-  const [resolvedIds, setResolvedIds] = useState<number[]>([]);
+  const [resolvedTitles, setResolvedTitles] = useState<string[]>([]);
+  const [showResolved, setShowResolved] = useState(false);
 
   useEffect(() => {
     if (guestMode) {
-      // In guest mode also show empty — no real data
       setRisks([]);
       setLoading(false);
       return;
@@ -49,22 +49,43 @@ function RiskEngineContent() {
         setRisks([]);
       })
       .finally(() => setLoading(false));
+
+    apiClient
+      .get<string[]>("/api/v1/lifesync/risks/resolved")
+      .then((titles) => setResolvedTitles(titles || []))
+      .catch(() => {});
   }, [guestMode]);
 
-  const toggleResolve = (id: number) => {
-    setResolvedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+  const toggleResolve = async (title: string) => {
+    const isCurrentlyResolved = resolvedTitles.includes(title);
+    const nextState = !isCurrentlyResolved;
+    setResolvedTitles((prev) =>
+      nextState ? [...prev, title] : prev.filter((t) => t !== title)
     );
+
+    if (!guestMode) {
+      try {
+        await apiClient.post("/api/v1/lifesync/risks/resolve", {
+          risk_title: title,
+          is_resolved: nextState,
+        });
+      } catch {
+        setResolvedTitles((prev) =>
+          isCurrentlyResolved ? [...prev, title] : prev.filter((t) => t !== title)
+        );
+      }
+    }
   };
 
   const filteredRisks = risks
-    .filter((r) => !resolvedIds.includes(r.id))
+    .filter((r) => showResolved ? resolvedTitles.includes(r.title) : !resolvedTitles.includes(r.title))
     .filter((r) => {
       if (activeFilter === "CRITICAL") return r.risk_level?.toLowerCase() === "critical";
       if (activeFilter === "HIGH") return r.risk_level?.toLowerCase() === "high";
       if (activeFilter === "MEDIUM") return r.risk_level?.toLowerCase() === "medium";
       return true;
     });
+
 
   const criticalCount = risks.filter((r) => r.risk_level?.toLowerCase() === "critical").length;
   const highCount = risks.filter((r) => r.risk_level?.toLowerCase() === "high").length;
@@ -149,33 +170,55 @@ function RiskEngineContent() {
 
       {/* Filter tabs — only shown when risks exist */}
       {!loading && risks.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3">
-          {["ALL", "CRITICAL", "HIGH", "MEDIUM"].map((f) => (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {["ALL", "CRITICAL", "HIGH", "MEDIUM"].map((f) => (
+              <Button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                variant={activeFilter === f ? "default" : "outline"}
+                className={`rounded-xl text-xs font-bold px-4 py-2 ${
+                  activeFilter === f
+                    ? "bg-indigo-600 text-white"
+                    : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white"
+                }`}
+              >
+                {f} ALERTS
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
             <Button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              variant={activeFilter === f ? "default" : "outline"}
-              className={`rounded-xl text-xs font-bold px-4 py-2 ${
-                activeFilter === f
-                  ? "bg-indigo-600 text-white"
-                  : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white"
+              onClick={() => setShowResolved(!showResolved)}
+              variant="outline"
+              className={`rounded-xl text-xs font-bold px-3.5 py-2 transition-all ${
+                showResolved
+                  ? "border-emerald-500/50 bg-emerald-950/40 text-emerald-400"
+                  : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
               }`}
             >
-              {f} ALERTS
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1 text-emerald-400" />
+              {showResolved ? "Showing Resolved" : `Resolved (${resolvedTitles.length})`}
             </Button>
-          ))}
+          </div>
         </div>
       )}
 
       {/* Risk Cards */}
       {!loading && filteredRisks.length > 0 && (
         <div className="space-y-4">
-          {filteredRisks.map((risk) => {
+          {filteredRisks.map((risk, idx) => {
             const level = risk.risk_level?.toLowerCase();
+            const isResolved = resolvedTitles.includes(risk.title);
             return (
               <div
-                key={risk.id}
-                className="p-6 rounded-3xl border bg-zinc-900/80 border-zinc-800 hover:border-zinc-700 shadow-xl transition-all space-y-4"
+                key={idx}
+                className={`p-6 rounded-3xl border shadow-xl transition-all space-y-4 ${
+                  isResolved
+                    ? "bg-zinc-950/60 border-zinc-800/60 opacity-80"
+                    : "bg-zinc-900/80 border-zinc-800 hover:border-zinc-700"
+                }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
                   <div className="flex items-center gap-3">
@@ -204,14 +247,19 @@ function RiskEngineContent() {
                       </span>
                     )}
                     <Button
-                      onClick={() => toggleResolve(risk.id)}
+                      onClick={() => toggleResolve(risk.title)}
                       variant="outline"
-                      className="rounded-xl text-xs border-zinc-700 text-zinc-300"
+                      className={`rounded-xl text-xs transition-all ${
+                        isResolved
+                          ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/40"
+                          : "border-zinc-700 text-zinc-300 hover:border-emerald-500/40 hover:text-emerald-400"
+                      }`}
                     >
-                      Resolve Risk
+                      {isResolved ? "Mark Unresolved" : "Resolve Risk"}
                     </Button>
                   </div>
                 </div>
+
 
                 <div>
                   <h3 className="text-lg font-bold text-white">{risk.title}</h3>
