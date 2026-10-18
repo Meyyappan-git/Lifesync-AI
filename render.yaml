@@ -1,0 +1,69 @@
+services:
+  - type: web
+    name: lifesync-api
+    runtime: docker
+    region: singapore
+    plan: 0.5c-512mb
+    branch: codex/light-ui-dashboard-updates
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /
+    disk:
+      name: lifesync-uploads
+      mountPath: /app/app/storage
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lifesync-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: FRONTEND_URL
+        fromService:
+          name: lifesync-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: STORAGE_DIR
+        value: /app/app/storage
+      - key: EMAIL_BACKEND
+        value: smtp
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_TLS
+        value: "true"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+
+  - type: web
+    name: lifesync-web
+    runtime: docker
+    region: singapore
+    plan: 0.5c-512mb
+    branch: codex/light-ui-dashboard-updates
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_INTERNAL_HOSTPORT
+        fromService:
+          name: lifesync-api
+          type: web
+          property: hostport
+
+databases:
+  - name: lifesync-db
+    databaseName: lifesync
+    user: lifesync
+    region: singapore
+    plan: 0.1c-256mb
+    postgresMajorVersion: "16"
+    diskSizeGB: 1
