@@ -63,26 +63,26 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-zinc-950 font-sans text-zinc-100">
+    <div className="flex min-h-screen w-full bg-slate-50 font-sans text-slate-900">
       {/* Desktop Left Banner */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-zinc-900 border-r border-zinc-800">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-white border-r border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-blue-600 p-2.5 text-white">
+          <div className="rounded-xl bg-teal-700 p-2.5 text-white">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <span className="text-xl font-bold tracking-tight">LifeSync AI</span>
         </div>
 
         <div className="space-y-6 max-w-lg">
-          <h1 className="text-4xl font-extrabold text-white leading-tight">
+          <h1 className="text-4xl font-extrabold text-slate-900 leading-tight">
             Create your account to start managing life operations.
           </h1>
-          <p className="text-zinc-400 text-base leading-relaxed">
+          <p className="text-slate-600 text-base leading-relaxed">
             Securely index passports, insurance policies, tax filings, and emergency profiles with privacy-first encryption.
           </p>
         </div>
 
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-slate-500">
           © {new Date().getFullYear()} LifeSync AI. All rights reserved.
         </p>
       </div>
@@ -91,14 +91,14 @@ export default function RegisterPage() {
       <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-16">
         <div className="mx-auto w-full max-w-md space-y-8">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Create an account</h2>
-            <p className="mt-2 text-sm text-zinc-400">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Create an account</h2>
+            <p className="mt-2 text-sm text-slate-600">
               Get started with LifeSync AI life management.
             </p>
           </div>
 
           {globalError && (
-            <div role="alert" aria-live="polite" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400 flex items-center gap-2">
+            <div role="alert" aria-live="polite" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{globalError}</span>
             </div>
@@ -107,7 +107,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             {/* Full Name */}
             <div className="space-y-2">
-              <label htmlFor="full_name" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="full_name" className="block text-sm font-medium text-slate-700">
                 Full name
               </label>
               <input
@@ -116,11 +116,11 @@ export default function RegisterPage() {
                 autoComplete="name"
                 disabled={isSubmitting}
                 {...register("full_name")}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                 placeholder="John Doe"
               />
               {errors.full_name && (
-                <p className="text-xs text-red-400" role="alert">
+                <p className="text-xs text-red-700" role="alert">
                   {errors.full_name.message}
                 </p>
               )}
@@ -128,7 +128,7 @@ export default function RegisterPage() {
 
             {/* Email Field */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                 Email address
               </label>
               <input
@@ -137,11 +137,11 @@ export default function RegisterPage() {
                 autoComplete="email"
                 disabled={isSubmitting}
                 {...register("email")}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                 placeholder="name@example.com"
               />
               {errors.email && (
-                <p className="text-xs text-red-400" role="alert">
+                <p className="text-xs text-red-700" role="alert">
                   {errors.email.message}
                 </p>
               )}
@@ -149,7 +149,7 @@ export default function RegisterPage() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                 Password
               </label>
               <div className="relative">
@@ -159,13 +159,13 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   disabled={isSubmitting}
                   {...register("password")}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 pl-4 pr-11 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full rounded-xl border border-slate-200 bg-white pl-4 pr-11 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                   placeholder="••••••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-800"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -174,7 +174,7 @@ export default function RegisterPage() {
               {/* Strength Meter Bar */}
               {watchPassword && (
                 <div className="space-y-2 pt-1">
-                  <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
                         strengthPercentage < 50
@@ -189,16 +189,16 @@ export default function RegisterPage() {
 
                   {/* Rule Checklist */}
                   <div className="grid grid-cols-2 gap-1.5 text-xs">
-                    <div className={`flex items-center gap-1.5 ${hasMinLength ? "text-emerald-400" : "text-zinc-500"}`}>
+                    <div className={`flex items-center gap-1.5 ${hasMinLength ? "text-emerald-700" : "text-slate-500"}`}>
                       {hasMinLength ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />} 10-72 characters
                     </div>
-                    <div className={`flex items-center gap-1.5 ${hasLetter ? "text-emerald-400" : "text-zinc-500"}`}>
+                    <div className={`flex items-center gap-1.5 ${hasLetter ? "text-emerald-700" : "text-slate-500"}`}>
                       {hasLetter ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />} At least 1 letter
                     </div>
-                    <div className={`flex items-center gap-1.5 ${hasNumber ? "text-emerald-400" : "text-zinc-500"}`}>
+                    <div className={`flex items-center gap-1.5 ${hasNumber ? "text-emerald-700" : "text-slate-500"}`}>
                       {hasNumber ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />} At least 1 number
                     </div>
-                    <div className={`flex items-center gap-1.5 ${noEmailInPassword ? "text-emerald-400" : "text-zinc-500"}`}>
+                    <div className={`flex items-center gap-1.5 ${noEmailInPassword ? "text-emerald-700" : "text-slate-500"}`}>
                       {noEmailInPassword ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />} No email username
                     </div>
                   </div>
@@ -206,7 +206,7 @@ export default function RegisterPage() {
               )}
 
               {errors.password && (
-                <p className="text-xs text-red-400" role="alert">
+                <p className="text-xs text-red-700" role="alert">
                   {errors.password.message}
                 </p>
               )}
@@ -214,7 +214,7 @@ export default function RegisterPage() {
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <label htmlFor="confirm_password" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="confirm_password" className="block text-sm font-medium text-slate-700">
                 Confirm password
               </label>
               <input
@@ -223,11 +223,11 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 disabled={isSubmitting}
                 {...register("confirm_password")}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                 placeholder="••••••••••••"
               />
               {errors.confirm_password && (
-                <p className="text-xs text-red-400" role="alert">
+                <p className="text-xs text-red-700" role="alert">
                   {errors.confirm_password.message}
                 </p>
               )}
@@ -237,7 +237,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+              className="w-full rounded-xl bg-teal-700 py-3 text-sm font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2 justify-center">
@@ -249,9 +249,9 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-zinc-400">
+          <p className="text-center text-sm text-slate-600">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-blue-400 hover:underline">
+            <Link href="/login" className="font-semibold text-teal-700 hover:underline">
               Sign in
             </Link>
           </p>

@@ -180,7 +180,8 @@ def calculate_life_health_score(db: Session, user_id: int) -> Dict[str, Any]:
     
     # Penalty calculation
     penalty = (critical_count * 20) + (high_count * 10)
-    health_score = max(10, min(100, avg_completion - penalty))
+    has_documents = db.query(Document.id).filter(Document.user_id == user_id).first() is not None
+    health_score = 0 if not has_documents else max(10, min(100, avg_completion - penalty))
 
     return {
         "life_health_score": health_score,

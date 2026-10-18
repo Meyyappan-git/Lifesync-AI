@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 def parse_metadata_from_text(raw_text: str) -> Dict[str, Any]:
     """

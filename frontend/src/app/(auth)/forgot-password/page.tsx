@@ -33,25 +33,25 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-zinc-950 px-6 font-sans text-zinc-100">
+    <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 px-6 font-sans text-slate-900">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Reset password</h1>
-          <p className="mt-2 text-sm text-zinc-400">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Reset password</h1>
+          <p className="mt-2 text-sm text-slate-600">
             Enter your email address and we'll send you a link to reset your password.
           </p>
         </div>
 
         {submitted ? (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-center space-y-4">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-teal-500/10 text-teal-700 border border-teal-500/20">
               <CheckCircle2 className="h-6 w-6" />
             </div>
-            <p className="text-sm text-zinc-300">
+            <p className="text-sm text-slate-700">
               If an account exists with that email, a password reset link has been sent. Please check your inbox.
             </p>
             <Link href="/login">
-              <Button variant="outline" className="w-full rounded-xl border-zinc-800 bg-zinc-950 text-zinc-200">
+              <Button variant="outline" className="w-full rounded-xl border-slate-200 bg-slate-50 text-slate-800">
                 Return to sign in
               </Button>
             </Link>
@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                 Email address
               </label>
               <input
@@ -68,11 +68,11 @@ export default function ForgotPasswordPage() {
                 autoComplete="email"
                 disabled={isSubmitting}
                 {...register("email")}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                 placeholder="name@example.com"
               />
               {errors.email && (
-                <p className="text-xs text-red-400" role="alert">
+                <p className="text-xs text-red-700" role="alert">
                   {errors.email.message}
                 </p>
               )}
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+              className="w-full rounded-xl bg-teal-700 py-3 text-sm font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2 justify-center">
@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center">
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white"
+            className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
           </Link>

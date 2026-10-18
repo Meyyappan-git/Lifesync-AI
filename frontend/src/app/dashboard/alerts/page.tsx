@@ -30,35 +30,35 @@ function AlertsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-6">
+      <div className="rounded-3xl border border-slate-200 bg-white/70 p-6">
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-rose-500/10 p-3 text-rose-400">
+          <div className="rounded-2xl bg-rose-500/10 p-3 text-rose-700">
             <ShieldAlert className="h-6 w-6" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold">Cross-Domain Risk Alerts</h1>
-            <p className="text-sm text-zinc-400">AI highlights hidden conflicts across travel, health, finance, and documents.</p>
+            <p className="text-sm text-slate-600">AI highlights hidden conflicts across travel, health, finance, and documents.</p>
           </div>
         </div>
       </div>
 
       <div className="space-y-3">
         {alerts.map((alert) => (
-          <div key={alert.id} className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+          <div key={alert.id} className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold text-white">{alert.title}</h2>
-                  <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-1 text-xs text-amber-300">{alert.risk_level}</span>
+                  <h2 className="text-lg font-semibold text-slate-900">{alert.title}</h2>
+                  <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-1 text-xs text-amber-700">{alert.risk_level}</span>
                 </div>
-                <p className="mt-2 text-sm text-zinc-400">{alert.reason}</p>
+                <p className="mt-2 text-sm text-slate-600">{alert.reason}</p>
               </div>
-              <div className="flex items-center gap-2 text-sm text-indigo-300">
+              <div className="flex items-center gap-2 text-sm text-teal-700">
                 <Sparkles className="h-4 w-4" />
                 {alert.deadline ? new Date(alert.deadline).toLocaleDateString() : 'No deadline'}
               </div>
             </div>
-            <p className="mt-3 text-sm text-zinc-300">Recommended action: {alert.recommended_action}</p>
+            <p className="mt-3 text-sm text-slate-700">Recommended action: {alert.recommended_action}</p>
           </div>
         ))}
       </div>
@@ -68,7 +68,7 @@ function AlertsContent() {
 
 export default function AlertsPage() {
   return (
-    <Suspense fallback={<div className="text-zinc-400 text-sm p-4">Loading Alerts...</div>}>
+    <Suspense fallback={<div className="text-slate-600 text-sm p-4">Loading Alerts...</div>}>
       <AlertsContent />
     </Suspense>
   );

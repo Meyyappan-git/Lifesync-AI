@@ -63,31 +63,31 @@ function EmergencyContent() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-6">
+      <div className="rounded-3xl border border-slate-200 bg-white/70 p-6">
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-emerald-500/10 p-3 text-emerald-400">
+          <div className="rounded-2xl bg-emerald-500/10 p-3 text-emerald-700">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold">Emergency Vault</h1>
-            <p className="text-sm text-zinc-400">Keep medical and contact details ready for the people who may need them.</p>
+            <p className="text-sm text-slate-600">Keep medical and contact details ready for the people who may need them.</p>
           </div>
         </div>
       </div>
 
-      <form onSubmit={saveProfile} className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
+      <form onSubmit={saveProfile} className="rounded-3xl border border-slate-200 bg-white p-6 space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <input value={form.blood_group} onChange={(e) => setForm({ ...form, blood_group: e.target.value })} placeholder="Blood group" className="rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-white" />
-          <input value={form.emergency_contact_name} onChange={(e) => setForm({ ...form, emergency_contact_name: e.target.value })} placeholder="Emergency contact name" className="rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-white" />
-          <input value={form.medical_conditions} onChange={(e) => setForm({ ...form, medical_conditions: e.target.value })} placeholder="Medical conditions" className="rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-white" />
-          <input value={form.emergency_contact_phone} onChange={(e) => setForm({ ...form, emergency_contact_phone: e.target.value })} placeholder="Emergency contact phone" className="rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-white" />
+          <input value={form.blood_group} onChange={(e) => setForm({ ...form, blood_group: e.target.value })} placeholder="Blood group" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900" />
+          <input value={form.emergency_contact_name} onChange={(e) => setForm({ ...form, emergency_contact_name: e.target.value })} placeholder="Emergency contact name" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900" />
+          <input value={form.medical_conditions} onChange={(e) => setForm({ ...form, medical_conditions: e.target.value })} placeholder="Medical conditions" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900" />
+          <input value={form.emergency_contact_phone} onChange={(e) => setForm({ ...form, emergency_contact_phone: e.target.value })} placeholder="Emergency contact phone" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900" />
         </div>
-        <button type="submit" className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-medium text-white">Save emergency profile</button>
-        {message ? <p className="text-sm text-zinc-400">{message}</p> : null}
+        <button type="submit" className="rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white">Save emergency profile</button>
+        {message ? <p className="text-sm text-slate-600">{message}</p> : null}
       </form>
 
       {profile ? (
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 text-sm text-zinc-400">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
           <p>Current profile is ready for quick access during emergencies.</p>
         </div>
       ) : null}
@@ -97,7 +97,7 @@ function EmergencyContent() {
 
 export default function EmergencyPage() {
   return (
-    <Suspense fallback={<div className="text-zinc-400 text-sm p-4">Loading Emergency Vault...</div>}>
+    <Suspense fallback={<div className="text-slate-600 text-sm p-4">Loading Emergency Vault...</div>}>
       <EmergencyContent />
     </Suspense>
   );

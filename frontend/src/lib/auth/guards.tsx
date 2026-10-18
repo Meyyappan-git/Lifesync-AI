@@ -24,9 +24,9 @@ export function RequireAuth({ children }: RequireAuthProps) {
 
   if (status === "loading") {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-zinc-950 text-zinc-400">
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50 text-slate-600">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-teal-700" />
           <p className="text-sm font-medium">Verifying session…</p>
         </div>
       </div>
@@ -51,8 +51,8 @@ export function RequireRole({ roles, children }: RequireRoleProps) {
 
   if (status === "loading") {
     return (
-      <div className="flex h-64 w-full items-center justify-center text-zinc-400">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+      <div className="flex h-64 w-full items-center justify-center text-slate-600">
+        <Loader2 className="h-6 w-6 animate-spin text-teal-700" />
       </div>
     );
   }
@@ -60,14 +60,14 @@ export function RequireRole({ roles, children }: RequireRoleProps) {
   if (!user || !roles.includes(user.role)) {
     return (
       <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
-        <div className="rounded-full bg-red-500/10 p-4 text-red-400 border border-red-500/20 mb-4">
+        <div className="rounded-full bg-red-500/10 p-4 text-red-700 border border-red-500/20 mb-4">
           <ShieldAlert className="h-10 w-10" />
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">403 - Access Forbidden</h1>
-        <p className="text-sm text-zinc-400 max-w-md mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">403 - Access Forbidden</h1>
+        <p className="text-sm text-slate-600 max-w-md mb-6">
           You do not have administrative privileges to access this area.
         </p>
-        <Button onClick={() => router.push("/dashboard")} variant="outline" className="rounded-xl border-zinc-800">
+        <Button onClick={() => router.push("/dashboard")} variant="outline" className="rounded-xl border-slate-200">
           Return to Dashboard
         </Button>
       </div>

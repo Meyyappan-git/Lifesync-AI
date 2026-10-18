@@ -87,27 +87,27 @@ export default function SecuritySettingsPage() {
   return (
     <div className="max-w-4xl space-y-10 font-sans">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Security & Sessions</h1>
-        <p className="mt-1 text-sm text-zinc-400">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Security & Sessions</h1>
+        <p className="mt-1 text-sm text-slate-600">
           Manage your password, active login sessions, and audit security events.
         </p>
       </div>
 
       {/* 1. Change Password */}
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-6">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Key className="h-5 w-5 text-blue-500" /> Change Password
+      <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-6">
+        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <Key className="h-5 w-5 text-teal-700" /> Change Password
         </h2>
 
         {passwordSuccess && (
-          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-400 flex items-center gap-2">
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-700 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
             <span>{passwordSuccess}</span>
           </div>
         )}
 
         {passwordError && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400 flex items-center gap-2">
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{passwordError}</span>
           </div>
@@ -115,7 +115,7 @@ export default function SecuritySettingsPage() {
 
         <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4 max-w-md" noValidate>
           <div className="space-y-2">
-            <label htmlFor="current_password" className="block text-sm font-medium text-zinc-300">
+            <label htmlFor="current_password" className="block text-sm font-medium text-slate-700">
               Current password
             </label>
             <input
@@ -124,15 +124,15 @@ export default function SecuritySettingsPage() {
               autoComplete="current-password"
               disabled={isSubmitting}
               {...register("current_password")}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
             {errors.current_password && (
-              <p className="text-xs text-red-400">{errors.current_password.message}</p>
+              <p className="text-xs text-red-700">{errors.current_password.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="new_password" className="block text-sm font-medium text-zinc-300">
+            <label htmlFor="new_password" className="block text-sm font-medium text-slate-700">
               New password
             </label>
             <input
@@ -141,17 +141,17 @@ export default function SecuritySettingsPage() {
               autoComplete="new-password"
               disabled={isSubmitting}
               {...register("new_password")}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
             {errors.new_password && (
-              <p className="text-xs text-red-400">{errors.new_password.message}</p>
+              <p className="text-xs text-red-700">{errors.new_password.message}</p>
             )}
           </div>
 
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+            className="rounded-xl bg-teal-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
@@ -165,50 +165,50 @@ export default function SecuritySettingsPage() {
       </div>
 
       {/* 2. Active Sessions */}
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-6">
+      <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Laptop className="h-5 w-5 text-indigo-400" /> Active Sessions
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Laptop className="h-5 w-5 text-teal-700" /> Active Sessions
             </h2>
-            <p className="text-xs text-zinc-400 mt-1">Devices currently logged into your account.</p>
+            <p className="text-xs text-slate-600 mt-1">Devices currently logged into your account.</p>
           </div>
 
           <Button
             type="button"
             onClick={handleSignOutEverywhere}
             variant="outline"
-            className="rounded-xl border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold flex items-center gap-2"
+            className="rounded-xl border-red-500/30 text-red-700 hover:bg-red-500/10 text-xs font-semibold flex items-center gap-2"
           >
             <LogOut className="h-4 w-4" /> Sign out everywhere
           </Button>
         </div>
 
         {loadingSessions ? (
-          <div className="py-8 text-center text-zinc-500">
-            <Loader2 className="mx-auto h-6 w-6 animate-spin text-blue-500" />
+          <div className="py-8 text-center text-slate-500">
+            <Loader2 className="mx-auto h-6 w-6 animate-spin text-teal-700" />
           </div>
         ) : sessions.length === 0 ? (
-          <p className="text-sm text-zinc-500">No active sessions found.</p>
+          <p className="text-sm text-slate-500">No active sessions found.</p>
         ) : (
           <div className="space-y-3">
             {sessions.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-sm"
+                className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white truncate max-w-xs">
+                    <span className="font-semibold text-slate-900 truncate max-w-xs">
                       {s.user_agent || "Unknown Browser / Device"}
                     </span>
                     {s.is_current && (
-                      <span className="rounded-full bg-blue-500/10 text-blue-400 px-2 py-0.5 text-xs font-medium border border-blue-500/20">
+                      <span className="rounded-full bg-teal-500/10 text-teal-700 px-2 py-0.5 text-xs font-medium border border-teal-500/20">
                         This device
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-slate-500">
                     IP: {s.ip || "N/A"} • Last active: {new Date(s.last_used_at).toLocaleString()}
                   </p>
                 </div>
@@ -218,7 +218,7 @@ export default function SecuritySettingsPage() {
                     type="button"
                     onClick={() => handleRevokeSession(s.id)}
                     variant="ghost"
-                    className="text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl"
+                    className="text-xs text-red-700 hover:bg-red-500/10 hover:text-red-700 rounded-xl"
                   >
                     Revoke
                   </Button>
@@ -230,27 +230,27 @@ export default function SecuritySettingsPage() {
       </div>
 
       {/* 3. Security Activity Audit Trail */}
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-6">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Clock className="h-5 w-5 text-emerald-400" /> Recent Security Activity
+      <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-6">
+        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <Clock className="h-5 w-5 text-emerald-700" /> Recent Security Activity
         </h2>
 
         {activities.length === 0 ? (
-          <p className="text-sm text-zinc-500">No activity logs recorded yet.</p>
+          <p className="text-sm text-slate-500">No activity logs recorded yet.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-zinc-400">
-              <thead className="border-b border-zinc-800 text-xs font-semibold uppercase text-zinc-400">
+            <table className="w-full text-left text-sm text-slate-600">
+              <thead className="border-b border-slate-200 text-xs font-semibold uppercase text-slate-600">
                 <tr>
                   <th className="py-3 px-4">Event</th>
                   <th className="py-3 px-4">IP Address</th>
                   <th className="py-3 px-4">Date & Time</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 font-mono text-xs">
+              <tbody className="divide-y divide-slate-800/60 font-mono text-xs">
                 {activities.map((act) => (
-                  <tr key={act.id} className="hover:bg-zinc-950/50">
-                    <td className="py-3.5 px-4 font-semibold text-zinc-200 uppercase">{act.event}</td>
+                  <tr key={act.id} className="hover:bg-slate-50/50">
+                    <td className="py-3.5 px-4 font-semibold text-slate-800 uppercase">{act.event}</td>
                     <td className="py-3.5 px-4">{act.ip || "N/A"}</td>
                     <td className="py-3.5 px-4">{new Date(act.created_at).toLocaleString()}</td>
                   </tr>

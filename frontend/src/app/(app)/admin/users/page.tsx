@@ -36,25 +36,25 @@ export default function AdminUsersPage() {
       <div className="max-w-6xl space-y-8 font-sans">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Users className="h-6 w-6 text-blue-500" /> User Directory
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <Users className="h-6 w-6 text-teal-700" /> User Directory
             </h1>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-slate-600">
               Manage registered users, roles, and account verification statuses.
             </p>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-6">
+        <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-6">
           {loading ? (
-            <div className="py-12 text-center text-zinc-500">
-              <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
+            <div className="py-12 text-center text-slate-500">
+              <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-700" />
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-zinc-400">
-                  <thead className="border-b border-zinc-800 text-xs font-semibold uppercase text-zinc-400">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead className="border-b border-slate-200 text-xs font-semibold uppercase text-slate-600">
                     <tr>
                       <th className="py-3 px-4">User</th>
                       <th className="py-3 px-4">Role</th>
@@ -63,34 +63,34 @@ export default function AdminUsersPage() {
                       <th className="py-3 px-4">Joined Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/60">
+                  <tbody className="divide-y divide-slate-800/60">
                     {users.map((u) => (
-                      <tr key={u.id} className="hover:bg-zinc-950/50">
+                      <tr key={u.id} className="hover:bg-slate-50/50">
                         <td className="py-4 px-4">
-                          <div className="font-semibold text-white">{u.full_name}</div>
-                          <div className="text-xs font-mono text-zinc-500">{u.email}</div>
+                          <div className="font-semibold text-slate-900">{u.full_name}</div>
+                          <div className="text-xs font-mono text-slate-500">{u.email}</div>
                         </td>
                         <td className="py-4 px-4">
                           <span
                             className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border ${
                               u.role === "admin"
-                                ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                                : "bg-zinc-800 text-zinc-300 border-zinc-700"
+                                ? "bg-cyan-500/10 text-cyan-700 border-cyan-500/20"
+                                : "bg-slate-100 text-slate-700 border-slate-300"
                             }`}
                           >
                             <Shield className="h-3 w-3" /> {u.role}
                           </span>
                         </td>
                         <td className="py-4 px-4">
-                          <span className="text-xs font-medium text-emerald-400">Active</span>
+                          <span className="text-xs font-medium text-emerald-700">Active</span>
                         </td>
                         <td className="py-4 px-4">
                           {u.email_verified ? (
-                            <span className="flex items-center gap-1 text-xs text-emerald-400 font-medium">
+                            <span className="flex items-center gap-1 text-xs text-emerald-700 font-medium">
                               <CheckCircle className="h-4 w-4" /> Verified
                             </span>
                           ) : (
-                            <span className="flex items-center gap-1 text-xs text-amber-400 font-medium">
+                            <span className="flex items-center gap-1 text-xs text-amber-700 font-medium">
                               <XCircle className="h-4 w-4" /> Pending
                             </span>
                           )}
@@ -105,8 +105,8 @@ export default function AdminUsersPage() {
               </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-                <p className="text-xs text-zinc-500">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+                <p className="text-xs text-slate-500">
                   Page {page} of {totalPages}
                 </p>
                 <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
                     variant="outline"
-                    className="rounded-xl border-zinc-800 text-xs"
+                    className="rounded-xl border-slate-200 text-xs"
                   >
                     Previous
                   </Button>
@@ -124,7 +124,7 @@ export default function AdminUsersPage() {
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages}
                     variant="outline"
-                    className="rounded-xl border-zinc-800 text-xs"
+                    className="rounded-xl border-slate-200 text-xs"
                   >
                     Next
                   </Button>

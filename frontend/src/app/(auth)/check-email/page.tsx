@@ -40,21 +40,21 @@ function CheckEmailContent() {
 
   return (
     <div className="w-full max-w-md text-center space-y-6">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-500 border border-blue-500/20">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-700/10 text-teal-700 border border-teal-500/20">
         <Mail className="h-8 w-8" />
       </div>
 
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Check your email</h1>
-        <p className="text-sm text-zinc-400">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Check your email</h1>
+        <p className="text-sm text-slate-600">
           We sent a verification link to{" "}
-          <span className="font-medium text-white">{email || "your email address"}</span>.
+          <span className="font-medium text-slate-900">{email || "your email address"}</span>.
           Please click the link in that email to activate your account.
         </p>
       </div>
 
       {resendStatus && (
-        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-300">
+        <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 p-3 text-xs text-teal-700">
           {resendStatus}
         </div>
       )}
@@ -65,7 +65,7 @@ function CheckEmailContent() {
           onClick={handleResend}
           disabled={cooldown > 0 || resending || !email}
           variant="outline"
-          className="w-full rounded-xl border-zinc-800 bg-zinc-900 py-3 text-sm text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
+          className="w-full rounded-xl border-slate-200 bg-white py-3 text-sm text-slate-800 hover:bg-slate-100 disabled:opacity-50"
         >
           {resending ? (
             <div className="flex items-center gap-2 justify-center">
@@ -80,7 +80,7 @@ function CheckEmailContent() {
 
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white"
+          className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
         </Link>
@@ -91,8 +91,8 @@ function CheckEmailContent() {
 
 export default function CheckEmailPage() {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-zinc-950 px-6 font-sans text-zinc-100">
-      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />}>
+    <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 px-6 font-sans text-slate-900">
+      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-teal-700 mx-auto" />}>
         <CheckEmailContent />
       </Suspense>
     </div>

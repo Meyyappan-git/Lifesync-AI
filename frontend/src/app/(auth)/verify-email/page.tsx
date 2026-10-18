@@ -38,43 +38,43 @@ function VerifyEmailContent() {
     <div className="w-full max-w-md text-center space-y-6">
       {loading ? (
         <div className="space-y-4">
-          <Loader2 className="mx-auto h-10 w-10 animate-spin text-blue-500" />
-          <h1 className="text-xl font-bold text-white">Verifying your email address…</h1>
-          <p className="text-sm text-zinc-400">Please wait while we confirm your account token.</p>
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-teal-700" />
+          <h1 className="text-xl font-bold text-slate-900">Verifying your email address…</h1>
+          <p className="text-sm text-slate-600">Please wait while we confirm your account token.</p>
         </div>
       ) : success ? (
         <div className="space-y-6">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
             <CheckCircle2 className="h-8 w-8" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Email verified!</h1>
-            <p className="text-sm text-zinc-400">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Email verified!</h1>
+            <p className="text-sm text-slate-600">
               Your email address has been successfully confirmed. You can now sign in to LifeSync AI.
             </p>
           </div>
 
           <Link href="/login">
-            <Button className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+            <Button className="w-full rounded-xl bg-teal-700 py-3 text-sm font-semibold text-white hover:bg-teal-600">
               Sign in to your account
             </Button>
           </Link>
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-700 border border-red-500/20">
             <AlertCircle className="h-8 w-8" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Verification failed</h1>
-            <p className="text-sm text-red-400 font-medium">{errorMessage}</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Verification failed</h1>
+            <p className="text-sm text-red-700 font-medium">{errorMessage}</p>
           </div>
 
           <div className="pt-2 space-y-3">
             <Link href="/login">
-              <Button className="w-full rounded-xl bg-zinc-900 border border-zinc-800 py-3 text-sm font-semibold text-zinc-200 hover:bg-zinc-800">
+              <Button className="w-full rounded-xl bg-white border border-slate-200 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100">
                 Return to sign in
               </Button>
             </Link>
@@ -87,8 +87,8 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-zinc-950 px-6 font-sans text-zinc-100">
-      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />}>
+    <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 px-6 font-sans text-slate-900">
+      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-teal-700 mx-auto" />}>
         <VerifyEmailContent />
       </Suspense>
     </div>

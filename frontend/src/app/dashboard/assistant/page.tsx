@@ -37,7 +37,7 @@ function AssistantContent() {
       text: "Hello! I am your LifeSync AI Assistant. I can answer questions about your documents, deadlines, risk alerts, and emergency vault."
     }
   ]);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -129,8 +129,8 @@ function AssistantContent() {
         }, 700);
       }
     } catch (err: any) {
-      setMessages(prev => [...prev, { 
-        sender: "ai", 
+      setMessages(prev => [...prev, {
+        sender: "ai",
         text: "I couldn't answer that right now. Please try again later.",
         error: true
       }]);
@@ -150,14 +150,14 @@ function AssistantContent() {
   return (
     <div className="space-y-6 font-sans max-w-5xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
       {/* Header */}
-      <div className="flex-none rounded-3xl border border-purple-900/40 bg-gradient-to-r from-purple-950/40 via-zinc-950 to-zinc-950 p-6 flex items-center justify-between gap-4 shadow-xl">
+      <div className="flex-none rounded-3xl border border-cyan-200/40 bg-gradient-to-r from-cyan-50/40 via-slate-50 to-slate-50 p-6 flex items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-4">
-          <div className="rounded-2xl bg-purple-500/20 border border-purple-500/30 p-3 text-purple-400">
+          <div className="rounded-2xl bg-cyan-500/20 border border-cyan-500/30 p-3 text-cyan-700">
             <Bot className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white">AI Assistant</h1>
-            <p className="text-xs text-zinc-400">Powered by Retrieval Augmented Generation (RAG)</p>
+            <h1 className="text-2xl font-black text-slate-900">AI Assistant</h1>
+            <p className="text-xs text-slate-600">Powered by Retrieval Augmented Generation (RAG)</p>
           </div>
         </div>
 
@@ -165,7 +165,7 @@ function AssistantContent() {
           <Button
             onClick={handleClearHistory}
             variant="outline"
-            className="border-zinc-800 bg-zinc-900 hover:bg-rose-950/40 hover:text-rose-400 hover:border-rose-500/30 text-zinc-400 rounded-2xl px-3.5 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+            className="border-slate-200 bg-white hover:bg-rose-50/40 hover:text-rose-700 hover:border-rose-500/30 text-slate-600 rounded-2xl px-3.5 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
             title="Clear Chat Conversation History"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -181,31 +181,31 @@ function AssistantContent() {
           <button
             key={i}
             onClick={() => handleSend(p)}
-            className="text-xs bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-purple-500/50 rounded-xl px-3.5 py-2 transition-all flex items-center gap-1.5"
+            className="text-xs bg-white/80 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-cyan-500/50 rounded-xl px-3.5 py-2 transition-all flex items-center gap-1.5"
           >
-            <Sparkles className="h-3 w-3 text-purple-400" /> {p}
+            <Sparkles className="h-3 w-3 text-cyan-700" /> {p}
           </button>
         ))}
       </div>
 
       {/* Chat Window */}
-      <div className="flex-1 min-h-0 rounded-3xl border border-zinc-800 bg-zinc-900/80 p-6 flex flex-col shadow-2xl overflow-hidden">
+      <div className="flex-1 min-h-0 rounded-3xl border border-slate-200 bg-white/80 p-6 flex flex-col shadow-2xl overflow-hidden">
         <div className="flex-1 overflow-y-auto space-y-5 pr-2 min-h-0">
           {messages.map((m, i) => (
             <div key={i} className={`flex items-start gap-3 ${m.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`p-2.5 rounded-2xl text-xs font-bold shrink-0 ${m.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'}`}>
+              <div className={`p-2.5 rounded-2xl text-xs font-bold shrink-0 ${m.sender === 'user' ? 'bg-teal-700 text-white' : 'bg-cyan-500/20 text-cyan-700 border border-cyan-500/30'}`}>
                 {m.sender === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
               </div>
 
               <div className="space-y-2 max-w-2xl overflow-hidden">
-                <div className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed prose prose-invert max-w-none ${m.sender === 'user' ? 'bg-indigo-600 text-white' : m.error ? 'bg-red-500/10 border border-red-500/30 text-red-200' : 'bg-zinc-950 border border-zinc-800 text-zinc-200'}`}>
+                <div className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed prose prose max-w-none ${m.sender === 'user' ? 'bg-teal-700 text-white' : m.error ? 'bg-red-500/10 border border-red-500/30 text-red-700' : 'bg-slate-50 border border-slate-200 text-slate-800'}`}>
                   {m.sender === 'ai' ? (
                     <ReactMarkdown>{m.text}</ReactMarkdown>
                   ) : (
                     m.text
                   )}
                   {m.error && (
-                    <button onClick={retryLast} className="mt-3 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                    <button onClick={retryLast} className="mt-3 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
                       <RefreshCw className="h-3 w-3" /> Retry
                     </button>
                   )}
@@ -215,10 +215,10 @@ function AssistantContent() {
                 {m.sender === "ai" && m.sources && m.sources.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {m.sources.map((src, idx) => (
-                      <a href={`/dashboard/document/${src.document_id}`} target="_blank" rel="noreferrer" key={idx} className="inline-flex items-center gap-1.5 bg-zinc-950/80 hover:bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer">
-                        <FileText className="h-3 w-3 text-purple-400" />
+                      <a href={`/dashboard/document/${src.document_id}`} target="_blank" rel="noreferrer" key={idx} className="inline-flex items-center gap-1.5 bg-slate-50/80 hover:bg-white text-slate-600 border border-slate-200 hover:border-slate-300 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer">
+                        <FileText className="h-3 w-3 text-cyan-700" />
                         <span>{src.name}</span>
-                        {src.folder && <span className="text-zinc-500 ml-1">({src.folder})</span>}
+                        {src.folder && <span className="text-slate-500 ml-1">({src.folder})</span>}
                       </a>
                     ))}
                   </div>
@@ -228,7 +228,7 @@ function AssistantContent() {
           ))}
 
           {loading && (
-            <div className="flex items-center gap-2 text-xs text-purple-400 bg-purple-500/10 p-3 rounded-xl w-fit">
+            <div className="flex items-center gap-2 text-xs text-cyan-700 bg-cyan-500/10 p-3 rounded-xl w-fit">
               <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Thinking...
             </div>
           )}
@@ -236,14 +236,14 @@ function AssistantContent() {
         </div>
 
         {/* Input Bar */}
-        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex-none flex items-center gap-3 pt-4 border-t border-zinc-800 mt-4">
-          <input 
-            value={input} 
-            onChange={e => setInput(e.target.value)} 
+        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex-none flex items-center gap-3 pt-4 border-t border-slate-200 mt-4">
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
             placeholder="Ask AI Assistant about your documents, expiries, risk alerts, or vault..."
-            className="flex-1 bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-3 text-sm text-white focus:outline-none focus:border-purple-500" 
+            className="flex-1 bg-slate-50 border border-slate-300 rounded-2xl px-5 py-3 text-sm text-slate-900 focus:outline-none focus:border-cyan-500"
           />
-          <Button type="submit" disabled={loading} className="bg-purple-600 hover:bg-purple-500 text-white rounded-2xl px-5 py-3 shadow-lg shadow-purple-600/30 shrink-0">
+          <Button type="submit" disabled={loading} className="bg-cyan-700 hover:bg-cyan-600 text-white rounded-2xl px-5 py-3 shadow-lg shadow-cyan-600/30 shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </form>
@@ -254,7 +254,7 @@ function AssistantContent() {
 
 export default function AssistantPage() {
   return (
-    <Suspense fallback={<div className="text-zinc-400 text-sm p-4">Loading Assistant...</div>}>
+    <Suspense fallback={<div className="text-slate-600 text-sm p-4">Loading Assistant...</div>}>
       <AssistantContent />
     </Suspense>
   );

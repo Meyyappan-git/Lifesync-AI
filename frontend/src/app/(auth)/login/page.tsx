@@ -92,14 +92,14 @@ function LoginContent() {
     <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-16">
       <div className="mx-auto w-full max-w-md space-y-8">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Sign in to your account</h2>
-          <p className="mt-2 text-sm text-zinc-400">
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Sign in to your account</h2>
+          <p className="mt-2 text-sm text-slate-600">
             Enter your credentials to access your LifeSync AI workspace.
           </p>
         </div>
 
         {globalError && (
-          <div role="alert" aria-live="polite" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400 space-y-2">
+          <div role="alert" aria-live="polite" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 space-y-2">
             <div className="flex items-center gap-2 font-medium">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{globalError}</span>
@@ -110,7 +110,7 @@ function LoginContent() {
                 <button
                   type="button"
                   onClick={handleResend}
-                  className="text-xs font-semibold text-blue-400 hover:underline"
+                  className="text-xs font-semibold text-teal-700 hover:underline"
                 >
                   Click here to resend verification email →
                 </button>
@@ -118,7 +118,7 @@ function LoginContent() {
             )}
 
             {lockoutTimer !== null && (
-              <p className="text-xs font-mono text-red-300">
+              <p className="text-xs font-mono text-red-700">
                 Account locked. Try again in {lockoutTimer} seconds.
               </p>
             )}
@@ -126,14 +126,14 @@ function LoginContent() {
         )}
 
         {resendStatus && (
-          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-400">
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-700">
             {resendStatus}
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
               Email address
             </label>
             <input
@@ -142,11 +142,11 @@ function LoginContent() {
               autoComplete="email"
               disabled={isSubmitting || lockoutTimer !== null}
               {...register("email")}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
               placeholder="name@example.com"
             />
             {errors.email && (
-              <p className="text-xs text-red-400" role="alert">
+              <p className="text-xs text-red-700" role="alert">
                 {errors.email.message}
               </p>
             )}
@@ -154,12 +154,12 @@ function LoginContent() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                 Password
               </label>
               <Link
                 href="/forgot-password"
-                className="text-xs text-blue-400 hover:text-blue-300"
+                className="text-xs text-teal-700 hover:text-teal-700"
               >
                 Forgot password?
               </Link>
@@ -171,30 +171,30 @@ function LoginContent() {
                 autoComplete="current-password"
                 disabled={isSubmitting || lockoutTimer !== null}
                 {...register("password")}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 pl-4 pr-11 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full rounded-xl border border-slate-200 bg-white pl-4 pr-11 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                 placeholder="••••••••••••"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-800"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-red-400" role="alert">
+              <p className="text-xs text-red-700" role="alert">
                 {errors.password.message}
               </p>
             )}
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 cursor-pointer text-sm text-zinc-400">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
               <input
                 type="checkbox"
                 {...register("remember_me")}
-                className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-slate-200 bg-white text-teal-700 focus:ring-teal-500"
               />
               <span>Remember me for 30 days</span>
             </label>
@@ -203,7 +203,7 @@ function LoginContent() {
           <Button
             type="submit"
             disabled={isSubmitting || lockoutTimer !== null}
-            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+            className="w-full rounded-xl bg-teal-700 py-3 text-sm font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2 justify-center">
@@ -215,9 +215,9 @@ function LoginContent() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-zinc-400">
+        <p className="text-center text-sm text-slate-600">
           Don't have an account?{" "}
-          <Link href="/register" className="font-semibold text-blue-400 hover:underline">
+          <Link href="/register" className="font-semibold text-teal-700 hover:underline">
             Create an account
           </Link>
         </p>
@@ -228,30 +228,30 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen w-full bg-zinc-950 font-sans text-zinc-100">
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-zinc-900 border-r border-zinc-800">
+    <div className="flex min-h-screen w-full bg-slate-50 font-sans text-slate-900">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-white border-r border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-blue-600 p-2.5 text-white">
+          <div className="rounded-xl bg-teal-700 p-2.5 text-white">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <span className="text-xl font-bold tracking-tight">LifeSync AI</span>
         </div>
 
         <div className="space-y-6 max-w-lg">
-          <h1 className="text-4xl font-extrabold text-white leading-tight">
+          <h1 className="text-4xl font-extrabold text-slate-900 leading-tight">
             Autonomous life operating system for secure document & risk management.
           </h1>
-          <p className="text-zinc-400 text-base leading-relaxed">
+          <p className="text-slate-600 text-base leading-relaxed">
             Organize critical passports, driving licences, health insurance, and vehicle records with AI multimodal OCR and proactive cross-domain compliance alerts.
           </p>
         </div>
 
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-slate-500">
           © {new Date().getFullYear()} LifeSync AI. All rights reserved.
         </p>
       </div>
 
-      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-blue-500 m-auto" />}>
+      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-teal-700 m-auto" />}>
         <LoginContent />
       </Suspense>
     </div>

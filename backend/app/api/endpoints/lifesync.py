@@ -39,7 +39,7 @@ from app.services.cross_domain_risk_engine import calculate_life_health_score, e
 from app.services.ai_assistant import answer_ai_assistant_query
 from app.services.email_service import EmailService
 from app.core.config import settings
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import os
 
 router = APIRouter()
@@ -75,14 +75,14 @@ def get_dashboard(current_user: User = Depends(deps.get_current_user), db: Sessi
     activity = db.query(ActivityLog).filter(ActivityLog.user_id == current_user.id).order_by(ActivityLog.created_at.desc()).limit(10).all()
 
     # Extract upcoming expiries from document metadata
-    now_dt = datetime.now()
+    today = date.today()
     upcoming_expiries = []
     for doc in documents:
         for meta in doc.metadata_entries:
             if meta.meta_key == "expiry_date":
                 try:
-                    exp_dt = datetime.strptime(meta.meta_value, "%Y-%m-%d")
-                    days_left = (exp_dt - now_dt).days
+                    exp_dt = datetime.strptime(meta.meta_value, "%Y-%m-%d").date()
+                    days_left = (exp_dt - today).days
                     if days_left < 0:
                         urgency_status = "EXPIRED"
                     elif days_left <= 30:

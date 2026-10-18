@@ -54,23 +54,23 @@ function ResetPasswordContent() {
   return (
     <div className="w-full max-w-md space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Set new password</h1>
-        <p className="mt-2 text-sm text-zinc-400">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Set new password</h1>
+        <p className="mt-2 text-sm text-slate-600">
           Please choose a strong new password for your account.
         </p>
       </div>
 
       {success ? (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-center space-y-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
             <CheckCircle2 className="h-6 w-6" />
           </div>
-          <h2 className="text-lg font-bold text-white">Password reset complete</h2>
-          <p className="text-sm text-zinc-400">
+          <h2 className="text-lg font-bold text-slate-900">Password reset complete</h2>
+          <p className="text-sm text-slate-600">
             Your password has been updated. All existing sessions have been signed out for security.
           </p>
           <Link href="/login">
-            <Button className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+            <Button className="w-full rounded-xl bg-teal-700 py-3 text-sm font-semibold text-white hover:bg-teal-600">
               Sign in with new password
             </Button>
           </Link>
@@ -78,7 +78,7 @@ function ResetPasswordContent() {
       ) : (
         <>
           {globalError && (
-            <div role="alert" aria-live="polite" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400 flex items-center gap-2">
+            <div role="alert" aria-live="polite" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{globalError}</span>
             </div>
@@ -88,7 +88,7 @@ function ResetPasswordContent() {
             <input type="hidden" {...register("token")} value={token} />
 
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                 New password
               </label>
               <div className="relative">
@@ -98,26 +98,26 @@ function ResetPasswordContent() {
                   autoComplete="new-password"
                   disabled={isSubmitting}
                   {...register("password")}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 pl-4 pr-11 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full rounded-xl border border-slate-200 bg-white pl-4 pr-11 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                   placeholder="••••••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-800"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-400" role="alert">
+                <p className="text-xs text-red-700" role="alert">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="confirm_password" className="block text-sm font-medium text-zinc-300">
+              <label htmlFor="confirm_password" className="block text-sm font-medium text-slate-700">
                 Confirm new password
               </label>
               <input
@@ -126,11 +126,11 @@ function ResetPasswordContent() {
                 autoComplete="new-password"
                 disabled={isSubmitting}
                 {...register("confirm_password")}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50"
                 placeholder="••••••••••••"
               />
               {errors.confirm_password && (
-                <p className="text-xs text-red-400" role="alert">
+                <p className="text-xs text-red-700" role="alert">
                   {errors.confirm_password.message}
                 </p>
               )}
@@ -139,7 +139,7 @@ function ResetPasswordContent() {
             <Button
               type="submit"
               disabled={isSubmitting || !token}
-              className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+              className="w-full rounded-xl bg-teal-700 py-3 text-sm font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2 justify-center">
@@ -158,8 +158,8 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-zinc-950 px-6 font-sans text-zinc-100">
-      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />}>
+    <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 px-6 font-sans text-slate-900">
+      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-teal-700 mx-auto" />}>
         <ResetPasswordContent />
       </Suspense>
     </div>

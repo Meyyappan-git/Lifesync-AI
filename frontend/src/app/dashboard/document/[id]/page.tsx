@@ -6,10 +6,10 @@ import { apiClient } from "@/lib/api-client";
 import { getAccessToken } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { 
-  ArrowLeft, FileText, Clock, FolderKanban, Download, 
-  Calendar, Tag, Eye, Edit2, Link2, Plus, Trash2, 
-  CheckCircle2, GitBranch, AlertCircle 
+import {
+  ArrowLeft, FileText, Clock, FolderKanban, Download,
+  Calendar, Tag, Eye, Edit2, Link2, Plus, Trash2,
+  CheckCircle2, GitBranch, AlertCircle
 } from "lucide-react";
 
 interface DocumentDetail {
@@ -215,20 +215,20 @@ export default function DocumentPage() {
       <Button
         variant="ghost"
         onClick={() => router.back()}
-        className="text-zinc-400 hover:text-white flex items-center gap-2 px-0"
+        className="text-slate-600 hover:text-slate-900 flex items-center gap-2 px-0"
       >
         <ArrowLeft size={18} /> Back to Folders
       </Button>
 
       {loading && (
         <div className="flex items-center gap-3 py-16 justify-center">
-          <div className="h-6 w-6 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
-          <p className="text-zinc-400">Loading document…</p>
+          <div className="h-6 w-6 rounded-full border-2 border-teal-500 border-t-transparent animate-spin" />
+          <p className="text-slate-600">Loading document…</p>
         </div>
       )}
 
       {error && (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 p-6 text-rose-300 text-sm">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-50/40 p-6 text-rose-700 text-sm">
           {error}
         </div>
       )}
@@ -236,23 +236,23 @@ export default function DocumentPage() {
       {doc && (
         <>
           {/* Header Card */}
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/80 p-8 shadow-xl">
+          <div className="rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-xl">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
                 <div className="rounded-2xl bg-accent/20 border border-accent/30 p-4 text-accent">
                   <FileText className="h-8 w-8" />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-white">{doc.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{doc.name}</h1>
                   <div className="flex flex-wrap items-center gap-3 mt-2">
-                    <span className="bg-zinc-800 px-2.5 py-1 rounded-lg text-xs font-mono uppercase text-zinc-300 border border-zinc-700">
+                    <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-xs font-mono uppercase text-slate-700 border border-slate-300">
                       {doc.file_type || "unknown"}
                     </span>
-                    <span className="text-xs text-zinc-500 flex items-center gap-1">
+                    <span className="text-xs text-slate-500 flex items-center gap-1">
                       <FolderKanban className="h-3 w-3" /> {doc.folder_name || "General"}
                     </span>
                     {doc.created_at && (
-                      <span className="text-xs text-zinc-500 flex items-center gap-1">
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
                         <Calendar className="h-3 w-3" /> {new Date(doc.created_at).toLocaleString()}
                       </span>
                     )}
@@ -264,15 +264,15 @@ export default function DocumentPage() {
                 <Button
                   onClick={() => setShowEditModal(true)}
                   variant="outline"
-                  className="border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl px-4 py-2.5 font-semibold flex items-center gap-2 shadow-md text-xs sm:text-sm"
+                  className="border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-2xl px-4 py-2.5 font-semibold flex items-center gap-2 shadow-md text-xs sm:text-sm"
                 >
-                  <Edit2 className="h-4 w-4 text-indigo-400" /> Edit Metadata & Folder
+                  <Edit2 className="h-4 w-4 text-teal-700" /> Edit Metadata & Folder
                 </Button>
 
                 {hasFile && previewBlobUrl && (
                   <Button
                     onClick={handleDownload}
-                    className="bg-primary hover:bg-blue-600 text-primary-foreground rounded-2xl px-5 py-2.5 font-semibold flex items-center gap-2 shadow-lg shadow-primary/20 text-xs sm:text-sm"
+                    className="bg-primary hover:bg-teal-700 text-primary-foreground rounded-2xl px-5 py-2.5 font-semibold flex items-center gap-2 shadow-lg shadow-primary/20 text-xs sm:text-sm"
                   >
                     <Download className="h-4 w-4" /> Download File
                   </Button>
@@ -283,13 +283,13 @@ export default function DocumentPage() {
 
 
           {/* File Preview */}
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-2xl space-y-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Eye className="h-4 w-4 text-cyan-400" /> File Preview
+          <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-2xl space-y-4">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Eye className="h-4 w-4 text-cyan-700" /> File Preview
             </h2>
 
             {previewBlobUrl ? (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4 overflow-hidden">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 overflow-hidden">
                 {isImage && (
                   <img
                     src={previewBlobUrl}
@@ -306,9 +306,9 @@ export default function DocumentPage() {
                 )}
                 {!isImage && !isPdf && (
                   <div className="text-center py-12 space-y-3">
-                    <FileText className="h-12 w-12 text-zinc-600 mx-auto" />
-                    <p className="text-sm text-zinc-400">
-                      Preview not available for <span className="font-mono text-zinc-300">.{fileType}</span> files.
+                    <FileText className="h-12 w-12 text-slate-600 mx-auto" />
+                    <p className="text-sm text-slate-600">
+                      Preview not available for <span className="font-mono text-slate-700">.{fileType}</span> files.
                     </p>
                     <Button onClick={handleDownload} variant="outline" className="rounded-xl">
                       <Download className="h-4 w-4 mr-2" /> Download to View
@@ -317,14 +317,14 @@ export default function DocumentPage() {
                 )}
               </div>
             ) : hasFile ? (
-              <div className="text-center py-12 border border-dashed border-zinc-800 rounded-2xl space-y-2">
-                <div className="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin mx-auto" />
-                <p className="text-xs text-zinc-500">Loading preview…</p>
+              <div className="text-center py-12 border border-dashed border-slate-200 rounded-2xl space-y-2">
+                <div className="h-5 w-5 rounded-full border-2 border-teal-500 border-t-transparent animate-spin mx-auto" />
+                <p className="text-xs text-slate-500">Loading preview…</p>
               </div>
             ) : (
-              <div className="text-center py-12 border border-dashed border-zinc-800 rounded-2xl space-y-2">
-                <FileText className="h-10 w-10 text-zinc-700 mx-auto" />
-                <p className="text-xs text-zinc-500">No file attached — this is a metadata-only document entry.</p>
+              <div className="text-center py-12 border border-dashed border-slate-200 rounded-2xl space-y-2">
+                <FileText className="h-10 w-10 text-slate-700 mx-auto" />
+                <p className="text-xs text-slate-500">No file attached — this is a metadata-only document entry.</p>
               </div>
             )}
           </div>
@@ -332,25 +332,25 @@ export default function DocumentPage() {
           {/* Document Details */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Metadata */}
-            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Tag className="h-4 w-4 text-amber-400" /> Document Metadata
+            <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-4">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Tag className="h-4 w-4 text-amber-700" /> Document Metadata
               </h2>
 
               {metaEntries.length === 0 ? (
-                <p className="text-xs text-zinc-500">No metadata extracted for this document.</p>
+                <p className="text-xs text-slate-500">No metadata extracted for this document.</p>
               ) : (
                 <div className="space-y-3">
                   {metaEntries.map(([key, value]) => (
                     <div
                       key={key}
-                      className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-zinc-800/80"
+                      className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80"
                     >
-                      <span className="text-xs text-zinc-400 capitalize">{key.replace(/_/g, " ")}</span>
+                      <span className="text-xs text-slate-600 capitalize">{key.replace(/_/g, " ")}</span>
                       <span className={`text-sm font-semibold ${
                         key.includes("expiry") || key.includes("date")
-                          ? "text-amber-400"
-                          : "text-zinc-200"
+                          ? "text-amber-700"
+                          : "text-slate-800"
                       }`}>
                         {value}
                       </span>
@@ -361,33 +361,33 @@ export default function DocumentPage() {
             </div>
 
             {/* Document Info */}
-            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <FileText className="h-4 w-4 text-indigo-400" /> Document Info
+            <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-4">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <FileText className="h-4 w-4 text-teal-700" /> Document Info
               </h2>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
-                  <span className="text-xs text-zinc-400">Document ID</span>
-                  <span className="text-sm font-mono text-zinc-200">#{doc.id}</span>
+                <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <span className="text-xs text-slate-600">Document ID</span>
+                  <span className="text-sm font-mono text-slate-800">#{doc.id}</span>
                 </div>
-                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
-                  <span className="text-xs text-zinc-400">File Type</span>
-                  <span className="text-sm font-mono uppercase text-zinc-200">{doc.file_type || "N/A"}</span>
+                <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <span className="text-xs text-slate-600">File Type</span>
+                  <span className="text-sm font-mono uppercase text-slate-800">{doc.file_type || "N/A"}</span>
                 </div>
-                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
-                  <span className="text-xs text-zinc-400">Folder</span>
-                  <span className="text-sm text-indigo-300">{doc.folder_name || "General"}</span>
+                <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <span className="text-xs text-slate-600">Folder</span>
+                  <span className="text-sm text-teal-700">{doc.folder_name || "General"}</span>
                 </div>
-                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
-                  <span className="text-xs text-zinc-400">Uploaded At</span>
-                  <span className="text-sm text-zinc-200">
+                <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <span className="text-xs text-slate-600">Uploaded At</span>
+                  <span className="text-sm text-slate-800">
                     {doc.created_at ? new Date(doc.created_at).toLocaleString() : "N/A"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
-                  <span className="text-xs text-zinc-400">File Available</span>
-                  <span className={`text-sm font-semibold ${hasFile ? "text-emerald-400" : "text-zinc-500"}`}>
+                <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <span className="text-xs text-slate-600">File Available</span>
+                  <span className={`text-sm font-semibold ${hasFile ? "text-emerald-700" : "text-slate-500"}`}>
                     {hasFile ? "Yes" : "Metadata Only"}
                   </span>
                 </div>
@@ -396,90 +396,90 @@ export default function DocumentPage() {
           </div>
 
           {/* OCR Extracted Text & RAG Index Status */}
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-4">
+          <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <FileText className="h-4 w-4 text-emerald-400" /> OCR Extracted Text & RAG Knowledge Index
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <FileText className="h-4 w-4 text-emerald-700" /> OCR Extracted Text & RAG Knowledge Index
               </h2>
-              <span className="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/20 font-medium">
+              <span className="bg-emerald-500/10 text-emerald-700 text-xs px-3 py-1 rounded-full border border-emerald-500/20 font-medium">
                 Indexed in RAG Vector Store
               </span>
             </div>
 
             {doc.raw_content ? (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 font-mono text-xs text-zinc-300 whitespace-pre-wrap max-h-96 overflow-y-auto leading-relaxed">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 font-mono text-xs text-slate-700 whitespace-pre-wrap max-h-96 overflow-y-auto leading-relaxed">
                 {doc.raw_content}
               </div>
             ) : (
-              <p className="text-xs text-zinc-500 italic">No OCR raw text extracted yet.</p>
+              <p className="text-xs text-slate-500 italic">No OCR raw text extracted yet.</p>
             )}
           </div>
 
           {/* Linked Documents & Cross-Folder Relationships */}
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-8 shadow-xl space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
+          <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-2 text-cyan-400">
+                <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-2 text-cyan-700">
                   <GitBranch className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
                     Linked Documents & Dependencies
                   </h2>
-                  <p className="text-xs text-zinc-400">Cross-folder document dependencies and superseded versions</p>
+                  <p className="text-xs text-slate-600">Cross-folder document dependencies and superseded versions</p>
                 </div>
               </div>
 
               <Button
                 onClick={() => setShowLinkModal(true)}
-                className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-cyan-600/20"
+                className="bg-cyan-700 hover:bg-cyan-600 text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-cyan-600/20"
               >
                 <Plus className="h-4 w-4" /> Link Another Document
               </Button>
             </div>
 
             {relationships.length === 0 ? (
-              <div className="text-center py-8 border border-dashed border-zinc-800 rounded-2xl space-y-2">
-                <Link2 className="h-8 w-8 text-zinc-600 mx-auto" />
-                <p className="text-xs font-semibold text-zinc-300">No Document Links Established</p>
-                <p className="text-[11px] text-zinc-500 max-w-md mx-auto">
+              <div className="text-center py-8 border border-dashed border-slate-200 rounded-2xl space-y-2">
+                <Link2 className="h-8 w-8 text-slate-600 mx-auto" />
+                <p className="text-xs font-semibold text-slate-700">No Document Links Established</p>
+                <p className="text-[11px] text-slate-500 max-w-md mx-auto">
                   Connect dependent files across folders (e.g. Flight Ticket depends on Passport, Driving Licence ↔ Vehicle RC).
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {relationships.map((rel) => (
-                  <div key={rel.id} className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800/90 flex items-center justify-between gap-3 group hover:border-zinc-700 transition-all shadow-md">
+                  <div key={rel.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3 group hover:border-slate-300 transition-all shadow-md">
                     <div className="space-y-1.5 overflow-hidden">
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase border ${
                           rel.relationship_type === "depends_on"
-                            ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                            ? "bg-amber-500/15 text-amber-700 border-amber-500/30"
                             : rel.relationship_type === "supersedes"
-                            ? "bg-purple-500/15 text-purple-400 border-purple-500/30"
-                            : "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                            ? "bg-cyan-500/15 text-cyan-700 border-cyan-500/30"
+                            : "bg-cyan-500/15 text-cyan-700 border-cyan-500/30"
                         }`}>
                           {rel.relationship_type.replace("_", " ")}
                         </span>
-                        <span className="text-[10px] text-zinc-400 font-mono bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+                        <span className="text-[10px] text-slate-600 font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
                           {rel.linked_doc_folder}
                         </span>
                       </div>
                       <Link
                         href={`/dashboard/document/${rel.linked_doc_id}`}
-                        className="text-sm font-bold text-white hover:text-cyan-400 transition-colors block truncate"
+                        className="text-sm font-bold text-slate-900 hover:text-cyan-700 transition-colors block truncate"
                         title={rel.linked_doc_name}
                       >
                         {rel.linked_doc_name}
                       </Link>
                       {rel.notes && (
-                        <p className="text-xs text-zinc-400 italic line-clamp-1">"{rel.notes}"</p>
+                        <p className="text-xs text-slate-600 italic line-clamp-1">"{rel.notes}"</p>
                       )}
                     </div>
 
                     <button
                       onClick={() => handleDeleteRelationship(rel.id)}
-                      className="text-zinc-600 hover:text-rose-400 p-2 rounded-xl hover:bg-rose-950/20 transition-all shrink-0"
+                      className="text-slate-600 hover:text-rose-700 p-2 rounded-xl hover:bg-rose-50/20 transition-all shrink-0"
                       title="Unlink Relationship"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -495,14 +495,14 @@ export default function DocumentPage() {
       {/* ── EDIT DOCUMENT MODAL ────────────────────────────────────────── */}
       {showEditModal && doc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl border border-zinc-800 bg-zinc-900 p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Edit2 className="h-5 w-5 text-indigo-400" /> Edit Document & Metadata
+          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Edit2 className="h-5 w-5 text-teal-700" /> Edit Document & Metadata
               </h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-zinc-500 hover:text-zinc-300 font-bold p-1"
+                className="text-slate-500 hover:text-slate-700 font-bold p-1"
               >
                 ✕
               </button>
@@ -510,22 +510,22 @@ export default function DocumentPage() {
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Document Name</label>
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Document Name</label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-teal-500"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Folder / Category</label>
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Folder / Category</label>
                 <select
                   value={editFolderId}
                   onChange={(e) => setEditFolderId(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-teal-500"
                 >
                   <option value="">Unassigned / General</option>
                   {availableFolders.map((f) => (
@@ -537,13 +537,13 @@ export default function DocumentPage() {
               </div>
 
               {/* Dynamic Metadata Entries */}
-              <div className="space-y-3 pt-2 border-t border-zinc-800">
+              <div className="space-y-3 pt-2 border-t border-slate-200">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Metadata Tags</label>
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Metadata Tags</label>
                   <button
                     type="button"
                     onClick={() => setEditMetadata([...editMetadata, { key: "", value: "" }])}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1"
+                    className="text-xs text-teal-700 hover:text-teal-700 font-bold flex items-center gap-1"
                   >
                     <Plus className="h-3 w-3" /> Add Tag
                   </button>
@@ -560,7 +560,7 @@ export default function DocumentPage() {
                         copy[idx].key = e.target.value;
                         setEditMetadata(copy);
                       }}
-                      className="w-1/2 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                      className="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
                     />
                     <input
                       type="text"
@@ -571,12 +571,12 @@ export default function DocumentPage() {
                         copy[idx].value = e.target.value;
                         setEditMetadata(copy);
                       }}
-                      className="w-1/2 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      className="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-500"
                     />
                     <button
                       type="button"
                       onClick={() => setEditMetadata(editMetadata.filter((_, i) => i !== idx))}
-                      className="text-zinc-500 hover:text-rose-400 p-1"
+                      className="text-slate-500 hover:text-rose-700 p-1"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -584,19 +584,19 @@ export default function DocumentPage() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setShowEditModal(false)}
-                  className="text-xs text-zinc-400 hover:text-white"
+                  className="text-xs text-slate-600 hover:text-slate-900"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={savingEdit}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-5 py-2 text-xs font-bold shadow-lg shadow-indigo-600/20"
+                  className="bg-teal-700 hover:bg-teal-600 text-white rounded-xl px-5 py-2 text-xs font-bold shadow-lg shadow-teal-600/20"
                 >
                   {savingEdit ? "Saving..." : "Save Changes"}
                 </Button>
@@ -609,14 +609,14 @@ export default function DocumentPage() {
       {/* ── LINK DOCUMENT RELATIONSHIP MODAL ────────────────────────────── */}
       {showLinkModal && doc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-6 sm:p-8 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <GitBranch className="h-5 w-5 text-cyan-400" /> Link Related Document
+          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <GitBranch className="h-5 w-5 text-cyan-700" /> Link Related Document
               </h3>
               <button
                 onClick={() => setShowLinkModal(false)}
-                className="text-zinc-500 hover:text-zinc-300 font-bold p-1"
+                className="text-slate-500 hover:text-slate-700 font-bold p-1"
               >
                 ✕
               </button>
@@ -624,12 +624,12 @@ export default function DocumentPage() {
 
             <form onSubmit={handleCreateRelationship} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Target Document to Link</label>
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Target Document to Link</label>
                 <select
                   required
                   value={linkTargetDocId}
                   onChange={(e) => setLinkTargetDocId(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-cyan-500"
                 >
                   <option value="">Select a document...</option>
                   {availableDocs.map((d) => (
@@ -641,11 +641,11 @@ export default function DocumentPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Relationship Type</label>
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Relationship Type</label>
                 <select
                   value={linkRelType}
                   onChange={(e) => setLinkRelType(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-cyan-500"
                 >
                   <option value="depends_on">Depends On (e.g., flight depends on passport)</option>
                   <option value="related_to">Related To (e.g., car insurance ↔ RC)</option>
@@ -654,29 +654,29 @@ export default function DocumentPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Relationship Notes (Optional)</label>
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Relationship Notes (Optional)</label>
                 <textarea
                   rows={2}
                   placeholder="e.g., Required for check-in and boarding"
                   value={linkNotes}
                   onChange={(e) => setLinkNotes(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setShowLinkModal(false)}
-                  className="text-xs text-zinc-400 hover:text-white"
+                  className="text-xs text-slate-600 hover:text-slate-900"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={linking || !linkTargetDocId}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl px-5 py-2 text-xs font-bold shadow-lg shadow-cyan-600/20"
+                  className="bg-cyan-700 hover:bg-cyan-600 text-white rounded-xl px-5 py-2 text-xs font-bold shadow-lg shadow-cyan-600/20"
                 >
                   {linking ? "Linking..." : "Establish Link"}
                 </Button>
