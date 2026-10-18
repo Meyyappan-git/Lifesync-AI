@@ -1,13 +1,14 @@
 # Render deployment
 
-The `render.yaml` Blueprint deploys the Next.js frontend, FastAPI backend, and PostgreSQL database in Singapore. The backend has a persistent disk for uploaded documents, and the frontend routes API requests over Render's private network.
+The `render.yaml` Blueprint deploys the Next.js frontend, FastAPI backend, and PostgreSQL database in Singapore. The frontend routes API requests over Render's private network.
 
 ## Deploy
 
 1. In the Render Dashboard, create a new Blueprint and connect `Meyyappan-git/Lifesync-AI`.
 2. Select the `codex/light-ui-dashboard-updates` branch.
-3. Enter SMTP credentials and the sender address when Render prompts for `SMTP_USER`, `SMTP_PASSWORD`, and `EMAIL_FROM`.
-4. Review the listed services and costs, then create the Blueprint.
-5. Open the `lifesync-web` service URL after both web services are healthy.
+3. Review the Blueprint and create the three free services.
+4. Open the `lifesync-web` service URL after both web services are healthy.
 
-The Blueprint uses paid compute and persistent storage so user uploads and database records survive restarts. Render's free web services cannot use persistent disks, and free Postgres expires after 30 days.
+## Demo limitations
+
+This free setup is for temporary demonstration only. Render's free Postgres expires 30 days after creation, and the backend's local filesystem is ephemeral, so uploaded documents can disappear after a restart, spin-down, or redeploy. The app uses its console email backend; verification and reset links appear in the backend logs instead of being emailed. Render free web services can spin down when idle and take about a minute to wake up.
