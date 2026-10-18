@@ -37,11 +37,13 @@ services:
     dockerContext: ./frontend
     healthCheckPath: /
     envVars:
-      - key: BACKEND_INTERNAL_HOSTPORT
+      # Free Render web services cannot receive private-network requests.
+      # Proxy API calls through the backend's public URL on the free demo plan.
+      - key: BACKEND_INTERNAL_URL
         fromService:
           name: lifesync-api
           type: web
-          property: hostport
+          envVarKey: RENDER_EXTERNAL_URL
 
 databases:
   - name: lifesync-db
