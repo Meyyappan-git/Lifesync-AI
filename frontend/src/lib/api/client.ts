@@ -52,9 +52,31 @@ async function handleResponse<T>(res: Response): Promise<T> {
     throw errObj;
   }
 
+  // FastAPI returns validation and HTTP errors in its `detail` property.
+  if (errorData && typeof errorData.detail === "string") {
+    throw {
+      code: `http_${res.status}`,
+      message: errorData.detail,
+      retryAfter,
+    } as ApiError;
+  }
+
+  if (errorData && Array.isArray(errorData.detail)) {
+    const details = errorData.detail
+      .map((issue: any) => issue?.msg)
+      .filter((message: unknown): message is string => typeof message === "string");
+    if (details.length) {
+      throw {
+        code: `http_${res.status}`,
+        message: details.join(" "),
+        retryAfter,
+      } as ApiError;
+    }
+  }
+
   throw {
     code: `http_${res.status}`,
-    message: res.statusText || "Request failed",
+    message: res.statusText || `Request failed (${res.status})`,
     retryAfter,
   } as ApiError;
 }
@@ -75,7 +97,15 @@ export async function fetchWithAuth<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(url, { ...options, headers, credentials: options.credentials || "same-origin" });
+  let response: Response;
+  try {
+    response = await fetch(url, { ...options, headers, credentials: options.credentials || "same-origin" });
+  } catch {
+    throw {
+      code: "network_error",
+      message: "LifeSync couldn't reach its server. Please try again in a moment.",
+    } as ApiError;
+  }
 
   // 401 Unauthorized handling with single-flight refresh token rotation
   if (response.status === 401 && !isRetry && !url.includes("/auth/login") && !url.includes("/auth/refresh")) {
