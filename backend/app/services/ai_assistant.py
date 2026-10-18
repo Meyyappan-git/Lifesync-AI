@@ -1,7 +1,7 @@
 import logging
 import uuid
 import re
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Set
 from sqlalchemy.orm import Session
 from app.models.core_models import ChatMessage
 from app.models.user import User
@@ -18,50 +18,124 @@ logger = logging.getLogger(__name__)
 
 def _smart_local_synthesis(query: str, chunks: List[TextChunk], user_name: str) -> RAGResponse:
     """
-    Fallback RAG synthesizer that directly reads retrieved document chunks & metadata
-    from local storage to provide an accurate answer without relying on external LLM services.
+    Question-aware extractive fallback for deployments without an LLM provider.
+    Return only relevant fields or passages; never substitute a document dump for an answer.
     """
+    if re.search(r"\b(hi|hello|hey|thanks|thank you)\b", query, re.IGNORECASE):
+        return RAGResponse(
+            answer=f"Hello {user_name}! What would you like to know about your LifeSync documents?",
+            used_sources=[],
+            found=True,
+            confidence="high",
+        )
+
     if not chunks:
         return RAGResponse(
-            answer=f"Hello **{user_name}**, I searched your LifeSync documents and vault, but I couldn't find any documents matching your request.",
+            answer="I couldn't find information that answers that in your LifeSync records. Add the relevant document or vault detail and try again.",
             used_sources=[],
             found=False,
             confidence="low"
         )
 
-    used_doc_ids = []
-    lines = [f"Here is what I found in your **LifeSync Vault & Documents**:\n"]
+    stopwords = {
+        "a", "an", "and", "are", "be", "can", "could", "do", "does", "for", "from",
+        "how", "i", "in", "is", "it", "me", "my", "of", "on", "or", "please", "show",
+        "tell", "the", "their", "this", "to", "what", "when", "where", "which", "who",
+        "why", "with", "would", "you", "your", "about", "find", "give", "much", "many",
+    }
 
-    seen_docs = set()
-    for c in chunks:
-        if c.doc_id is not None and c.doc_id not in used_doc_ids:
-            used_doc_ids.append(c.doc_id)
+    def terms(text: str) -> Set[str]:
+        return {
+            token for token in re.findall(r"[a-z0-9]+", text.lower())
+            if len(token) > 1 and token not in stopwords
+        }
 
-        doc_key = (c.source_doc, c.folder_name)
-        if doc_key not in seen_docs:
-            seen_docs.add(doc_key)
-            lines.append(f"### 📄 {c.source_doc} (`{c.folder_name}` folder)")
+    query_terms = terms(query)
+    field_synonyms = {
+        "expiry": {"expiry", "expires", "expire", "expiration", "valid", "validity", "deadline", "renewal", "renew"},
+        "academic_score": {"cgpa", "gpa", "grade", "grades", "marks", "score", "percentage", "percent"},
+        "identifier": {"number", "id", "identifier", "policy"},
+        "blood_group": {"blood", "group", "type"},
+        "contact": {"contact", "phone", "telephone", "emergency"},
+    }
+    expanded_terms = set(query_terms)
+    for synonyms in field_synonyms.values():
+        if query_terms.intersection(synonyms):
+            expanded_terms.update(synonyms)
+    requested_field_terms = set().union(*field_synonyms.values()) | {
+        "date", "name", "amount", "address", "status", "value", "issued", "issue",
+        "start", "end", "year", "email", "institution", "provider",
+    }
 
-            if c.metadata:
-                meta_items = [f"**{k.replace('_', ' ').title()}**: `{v}`" for k, v in c.metadata.items() if v and not k.startswith("ocr_")]
-                if meta_items:
-                    lines.append("  - " + "\n  - ".join(meta_items))
+    # Structured OCR fields are the most reliable source for direct fact questions.
+    metadata_candidates = []
+    for chunk in chunks:
+        for key, value in (chunk.metadata or {}).items():
+            if not value or key.startswith("ocr_"):
+                continue
+            key_terms = terms(key.replace("_", " "))
+            direct_overlap = key_terms.intersection(query_terms)
+            overlap = key_terms.intersection(expanded_terms)
+            requested_field_match = bool(key_terms.intersection(query_terms & requested_field_terms))
+            synonym_field_match = any(
+                query_terms.intersection(synonyms) and key_terms.intersection(synonyms)
+                for synonyms in field_synonyms.values()
+            )
+            if overlap and (requested_field_match or synonym_field_match):
+                # Prefer the requested field (for example, expiry) over a different
+                # field from the same document (for example, passport number).
+                field_bonus = sum(
+                    3 for group, synonyms in field_synonyms.items()
+                    if query_terms.intersection(synonyms) and key_terms.intersection(synonyms)
+                )
+                score = field_bonus + len(direct_overlap) * 2 + len(overlap)
+                metadata_candidates.append((score, chunk, key, str(value)))
 
-            # Include clean excerpt preview if present
-            clean_text = c.text
-            clean_text = re.sub(r'📄 \[Document:.*?\]', '', clean_text).strip()
-            clean_text = re.sub(r'📄 \[Document Header\].*?\n', '', clean_text).strip()
-            if len(clean_text) > 200:
-                clean_text = clean_text[:200] + "..."
-            if clean_text:
-                lines.append(f"  > *\"{clean_text}\"*\n")
+    if metadata_candidates:
+        _, chunk, key, value = max(metadata_candidates, key=lambda item: item[0])
+        field_name = key.replace("_", " ")
+        answer = f"Your {field_name} is {value} (from {chunk.source_doc})."
+        return RAGResponse(
+            answer=answer,
+            used_sources=[chunk.doc_id] if chunk.doc_id is not None else [],
+            found=True,
+            confidence="medium",
+        )
 
-    answer_md = "\n".join(lines)
+    # Otherwise select the most relevant OCR sentence instead of returning the whole file.
+    passages = []
+    for chunk in chunks:
+        clean_text = re.sub(r"📄 \[Document:.*?\]\s*", "", chunk.text)
+        clean_text = re.sub(r"📄 \[Document Header\].*?(?:\n|$)", "", clean_text)
+        for sentence in re.split(r"(?<=[.!?])\s+|\n+", clean_text):
+            sentence = sentence.strip(" \t-*•")
+            sentence_terms = terms(sentence)
+            overlap = sentence_terms.intersection(expanded_terms)
+            if sentence and overlap:
+                passages.append((len(overlap) / max(len(query_terms), 1), len(overlap), chunk, sentence))
+
+    if passages:
+        _, _, chunk, passage = max(passages, key=lambda item: (item[0], item[1]))
+        if len(passage) > 500:
+            passage = passage[:497].rsplit(" ", 1)[0] + "..."
+        answer = f"{passage} (from {chunk.source_doc})."
+        return RAGResponse(
+            answer=answer,
+            used_sources=[chunk.doc_id] if chunk.doc_id is not None else [],
+            found=True,
+            confidence="low" if len(terms(passage).intersection(query_terms)) < 2 else "medium",
+        )
+
+    closest_doc = chunks[0].source_doc
+    answer = (
+        f"I couldn't find a detail in {closest_doc} that answers that question. "
+        "Try asking about a specific value in the document, or upload a copy that includes it."
+    )
     return RAGResponse(
-        answer=answer_md,
-        used_sources=used_doc_ids,
-        found=True,
-        confidence="high"
+        answer=answer,
+        used_sources=[],
+        found=False,
+        confidence="low",
     )
 
 def answer_ai_assistant_query(db: Session, user: User, query: str) -> Dict[str, Any]:
@@ -110,7 +184,12 @@ def answer_ai_assistant_query(db: Session, user: User, query: str) -> Dict[str, 
         seen_source_ids = set()
         for c in chunks:
             doc_id_val = c.doc_id if c.doc_id is not None else 0
-            if (not rag_response.used_sources or c.doc_id in rag_response.used_sources or len(sources) < 3) and (doc_id_val, c.source_doc) not in seen_source_ids:
+            source_is_relevant = (
+                c.doc_id in rag_response.used_sources
+                if rag_response.used_sources
+                else len(sources) < 3
+            )
+            if source_is_relevant and (doc_id_val, c.source_doc) not in seen_source_ids:
                 seen_source_ids.add((doc_id_val, c.source_doc))
                 sources.append(SourceChunk(
                     id=doc_id_val,
