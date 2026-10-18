@@ -50,4 +50,3 @@ databases:
     region: singapore
     plan: free
     postgresMajorVersion: "16"
-    diskSizeGB: 1
